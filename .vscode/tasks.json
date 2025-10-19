@@ -326,6 +326,19 @@
 			],
 			"isBackground": false,
 			"group": "build"
+		},
+		{
+			"label": "Frontend typecheck/build quick",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"build",
+				"--prefix",
+				"frontend"
+			],
+			"isBackground": false,
+			"group": "build"
 		}
 	]
 }

@@ -68,6 +68,7 @@ export default function Tasks() {
   const { data: tasks = [], isLoading } = useTasks();
   const { data: users = [], isLoading: loadingUsers } = useUsersLookup();
   const [runningByTask, setRunningByTask] = React.useState({});
+  const [creating, setCreating] = React.useState(false);
   const [filters, setFilters] = React.useState({
     category: "",
     nature: "",
@@ -77,6 +78,35 @@ export default function Tasks() {
     open: false,
     entryId: null,
     comment: "",
+  });
+
+  // Query for clients list
+  const { data: clients = [] } = useQuery({
+    queryKey: ["clients"],
+    queryFn: async () => {
+      const { data } = await api.get("/clients");
+      return data?.data ?? data;
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (payload) => {
+      const { data } = await api.post("/tasks", payload);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tasks"] });
+      setCreating(false);
+    },
+    onError: (error) => {
+      alert(
+        `Erreur: ${
+          error.response?.data?.message ||
+          error.message ||
+          "Impossible de créer la tâche"
+        }`
+      );
+    },
   });
 
   const startMutation = useMutation({
@@ -144,11 +174,32 @@ export default function Tasks() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col md:flex-row md:items-end md:justify-between gap-4"
       >
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-2">
-          Tâches
-        </h1>
-        <p className="text-gray-600">Suivez et gérez vos tâches par statut</p>
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-2">
+            Tâches
+          </h1>
+          <p className="text-gray-600">Suivez et gérez vos tâches par statut</p>
+        </div>
+        <RequirePermission perm="tasks.manage" fallback={null}>
+          <Button onClick={() => setCreating(true)}>
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Ajouter une tâche
+          </Button>
+        </RequirePermission>
       </motion.div>
 
       {/* Filters */}
@@ -313,6 +364,17 @@ export default function Tasks() {
           />
         </div>
       </Modal>
+
+      {/* Create Task Modal */}
+      {creating && (
+        <CreateTaskModal
+          onClose={() => setCreating(false)}
+          onSave={(payload) => createMutation.mutate(payload)}
+          saving={createMutation.isPending}
+          clients={clients}
+          users={users}
+        />
+      )}
     </div>
   );
 }
@@ -342,15 +404,44 @@ function TaskCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ delay: index * 0.05 }}
-      whileHover={{ y: -3, scale: 1.02 }}
+      initial={{ opacity: 0, scale: 0.9, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.9, y: -20 }}
+      transition={{
+        delay: index * 0.05,
+        type: "spring",
+        stiffness: 300,
+        damping: 25,
+      }}
+      whileHover={{
+        y: -5,
+        scale: 1.03,
+        boxShadow: "0 20px 40px rgba(0, 0, 0, 0.12)",
+        borderColor: "rgba(59, 130, 246, 0.3)",
+      }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      className="relative rounded-xl border-2 border-gray-200 bg-white p-4 shadow-md hover:shadow-xl transition-all duration-300"
+      className="relative rounded-xl border-2 border-gray-200 bg-white p-4 shadow-md transition-all duration-300 overflow-hidden group"
     >
+      {/* Hover gradient overlay */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isHovered ? 0.03 : 0 }}
+        transition={{ duration: 0.3 }}
+        className="absolute inset-0 bg-gradient-to-br from-primary-500 to-primary-700 pointer-events-none"
+      />
+
+      {/* Shimmer effect */}
+      <motion.div
+        initial={{ x: "-100%", opacity: 0 }}
+        animate={
+          isHovered
+            ? { x: "200%", opacity: [0, 0.3, 0] }
+            : { x: "-100%", opacity: 0 }
+        }
+        transition={{ duration: 0.8, ease: "easeInOut" }}
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-12 pointer-events-none"
+      />
       {/* Progress bar */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-gray-100 rounded-t-xl overflow-hidden">
         <motion.div
@@ -366,9 +457,14 @@ function TaskCard({
           <div className="font-semibold text-gray-900">
             {task.title ?? task.name ?? `Tâche #${task.id}`}
           </div>
-          <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-            <span className="inline-flex items-center gap-1">
-              <svg
+          <div className="flex items-center gap-2 mt-2 text-xs">
+            <motion.span
+              whileHover={{ scale: 1.05, y: -1 }}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gradient-to-r from-indigo-100 to-blue-100 text-indigo-700 font-medium border border-indigo-200 shadow-sm relative z-10"
+            >
+              <motion.svg
+                animate={{ rotate: isHovered ? [0, 5, -5, 0] : 0 }}
+                transition={{ duration: 0.5 }}
                 className="w-3 h-3"
                 fill="none"
                 stroke="currentColor"
@@ -380,10 +476,13 @@ function TaskCard({
                   strokeWidth={2}
                   d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
                 />
-              </svg>
+              </motion.svg>
               {task.category || "Général"}
-            </span>
-            <span className="inline-flex items-center gap-1">
+            </motion.span>
+            <motion.span
+              whileHover={{ scale: 1.05, y: -1 }}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 font-medium border border-purple-200 shadow-sm relative z-10"
+            >
               <svg
                 className="w-3 h-3"
                 fill="none"
@@ -398,12 +497,16 @@ function TaskCard({
                 />
               </svg>
               {task.due_at ?? "—"}
-            </span>
+            </motion.span>
           </div>
         </div>
         <motion.div
-          animate={{ scale: isHovered ? 1.1 : 1 }}
-          className="text-sm font-bold text-gray-700 px-2 py-1 rounded-lg bg-gray-100"
+          animate={{
+            scale: isHovered ? 1.15 : 1,
+            rotate: isHovered ? [0, -3, 3, 0] : 0,
+          }}
+          transition={{ duration: 0.4 }}
+          className="text-sm font-bold text-primary-700 px-3 py-1.5 rounded-lg bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-200 shadow-sm relative z-10"
         >
           {task.progress ?? 0}%
         </motion.div>
@@ -594,4 +697,204 @@ function initials(name) {
   const parts = String(name).split(/\s+/);
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function CreateTaskModal({ onClose, onSave, saving, clients, users }) {
+  const [form, setForm] = React.useState({
+    client_id: clients[0]?.id || "",
+    owner_id: "",
+    category: "COMPTABLE",
+    nature: "CONTINUE",
+    status: "EN_ATTENTE",
+    priority: 0,
+    progress: 0,
+    starts_at: "",
+    due_at: "",
+    notes: "",
+  });
+
+  function update(field, value) {
+    setForm((s) => ({ ...s, [field]: value }));
+  }
+
+  function submit(e) {
+    e.preventDefault();
+    const payload = { ...form };
+    // Convert empty strings to null for optional fields
+    if (!payload.owner_id) payload.owner_id = null;
+    if (!payload.starts_at) payload.starts_at = null;
+    if (!payload.due_at) payload.due_at = null;
+    if (!payload.notes) payload.notes = null;
+    onSave(payload);
+  }
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title="Créer une nouvelle tâche"
+      footer={
+        <div className="flex gap-2 justify-end">
+          <Button
+            onClick={onClose}
+            className="!from-gray-200 !to-gray-300 !text-gray-800"
+          >
+            Annuler
+          </Button>
+          <Button onClick={submit} disabled={saving || !form.client_id}>
+            {saving ? "Enregistrement..." : "Créer"}
+          </Button>
+        </div>
+      }
+    >
+      <form onSubmit={submit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Client */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Client <span className="text-red-500">*</span>
+            </label>
+            <Select
+              value={form.client_id}
+              onChange={(e) => update("client_id", e.target.value)}
+              options={[
+                { value: "", label: "Sélectionner un client" },
+                ...clients.map((c) => ({
+                  value: String(c.id),
+                  label: c.raison_sociale || `Client #${c.id}`,
+                })),
+              ]}
+              required
+            />
+          </div>
+
+          {/* Owner */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Responsable
+            </label>
+            <Select
+              value={form.owner_id}
+              onChange={(e) => update("owner_id", e.target.value)}
+              options={[
+                { value: "", label: "Aucun" },
+                ...users.map((u) => ({
+                  value: String(u.id),
+                  label: u.name || u.email || `User #${u.id}`,
+                })),
+              ]}
+            />
+          </div>
+
+          {/* Category */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Catégorie <span className="text-red-500">*</span>
+            </label>
+            <Select
+              value={form.category}
+              onChange={(e) => update("category", e.target.value)}
+              options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+              required
+            />
+          </div>
+
+          {/* Nature */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nature <span className="text-red-500">*</span>
+            </label>
+            <Select
+              value={form.nature}
+              onChange={(e) => update("nature", e.target.value)}
+              options={NATURES.map((n) => ({ value: n, label: n }))}
+              required
+            />
+          </div>
+
+          {/* Status */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Statut
+            </label>
+            <Select
+              value={form.status}
+              onChange={(e) => update("status", e.target.value)}
+              options={STATUS.map((s) => ({ value: s.key, label: s.label }))}
+            />
+          </div>
+
+          {/* Priority */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Priorité (0-5)
+            </label>
+            <input
+              type="number"
+              min="0"
+              max="5"
+              value={form.priority}
+              onChange={(e) => update("priority", parseInt(e.target.value))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Progress */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Progression (0-100%)
+            </label>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              value={form.progress}
+              onChange={(e) => update("progress", parseInt(e.target.value))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Start Date */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Date de début
+            </label>
+            <input
+              type="date"
+              value={form.starts_at}
+              onChange={(e) => update("starts_at", e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Due Date */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Date d'échéance
+            </label>
+            <input
+              type="date"
+              value={form.due_at}
+              onChange={(e) => update("due_at", e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        {/* Notes */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Notes
+          </label>
+          <textarea
+            value={form.notes}
+            onChange={(e) => update("notes", e.target.value)}
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+            placeholder="Ajoutez des notes sur cette tâche..."
+          />
+        </div>
+      </form>
+    </Modal>
+  );
 }

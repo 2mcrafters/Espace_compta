@@ -1,4 +1,10 @@
-export default function Table({ columns=[], data=[], keyField='id', empty='No data', onRowClick }){
+export default function Table({
+  columns = [],
+  data = [],
+  keyField = "id",
+  empty = "Aucune donnée",
+  onRowClick,
+}) {
   return (
     <div className="overflow-x-auto border rounded">
       <table className="min-w-full text-xs sm:text-sm">

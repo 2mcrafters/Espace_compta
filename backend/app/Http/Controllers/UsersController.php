@@ -9,9 +9,69 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rules\Password as PasswordRule;
+use Spatie\Permission\Models\Role;
 
 class UsersController extends Controller
 {
+    public function store(Request $request)
+    {
+        // ADMIN can create via Gate::before; others need users.edit
+        Gate::authorize('users.edit');
+
+        $data = $request->validate([
+            'first_name' => ['nullable','string','max:255'],
+            'last_name' => ['nullable','string','max:255'],
+            'name' => ['nullable','string','max:255'],
+            'email' => ['required','email','max:255','unique:users,email'],
+            'phone' => ['nullable','string','max:30'],
+            'internal_id' => ['nullable','string','max:255','unique:users,internal_id'],
+            'job_title' => ['nullable','string','max:255'],
+            'monthly_hours_target' => ['nullable','numeric'],
+            'yearly_hours_target' => ['nullable','numeric'],
+            'password' => ['required', PasswordRule::defaults()],
+            'roles' => ['array'],
+            'roles.*' => ['string','exists:roles,name'],
+            'hourly_rate_mad' => ['nullable','numeric','min:0'],
+            'hourly_rate_effective_from' => ['nullable','date'],
+        ]);
+
+        // Derive display name if not provided
+        if (empty($data['name'])) {
+            $parts = trim(($data['first_name'] ?? '').' '.($data['last_name'] ?? ''));
+            $data['name'] = $parts !== '' ? $parts : explode('@', $data['email'])[0];
+        }
+
+        $user = User::create([
+            'name' => $data['name'],
+            'first_name' => $data['first_name'] ?? null,
+            'last_name' => $data['last_name'] ?? null,
+            'email' => $data['email'],
+            'phone' => $data['phone'] ?? null,
+            'internal_id' => $data['internal_id'] ?? null,
+            'job_title' => $data['job_title'] ?? null,
+            'monthly_hours_target' => $data['monthly_hours_target'] ?? null,
+            'yearly_hours_target' => $data['yearly_hours_target'] ?? null,
+            'password' => $data['password'],
+        ]);
+
+        // Assign roles if provided
+        if (!empty($data['roles']) && method_exists($user, 'syncRoles')) {
+            $user->syncRoles($data['roles']);
+        }
+
+        // Optionally set initial hourly rate
+        if (isset($data['hourly_rate_mad'])) {
+            $effectiveFrom = $data['hourly_rate_effective_from'] ?? now()->toDateString();
+            $effectiveFrom = Carbon::parse($effectiveFrom)->toDateString();
+            UserRate::updateOrCreate(
+                ['user_id' => $user->id, 'effective_from' => $effectiveFrom],
+                ['hourly_rate_mad' => $data['hourly_rate_mad']]
+            );
+        }
+
+        return response()->json($this->transform($user->fresh()), 201);
+    }
     public function index()
     {
         // Avoid eager-loading roles when Spatie HasRoles isn't available

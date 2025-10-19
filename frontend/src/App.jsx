@@ -7,6 +7,7 @@ import { logout } from "./store/redux/authSlice";
 import { selectUser } from "./store/redux/store";
 import Drawer from "./components/ui/Drawer";
 import ConfirmDialog from "./components/ui/ConfirmDialog";
+import ThemeToggle from "./components/ui/ThemeToggle";
 
 export default function App() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -21,16 +22,16 @@ export default function App() {
   }
 
   const linkBase =
-    "px-4 py-2.5 rounded-lg transition-all duration-200 flex items-center gap-3 font-medium";
+    "px-4 py-2.5 rounded-xl transition-all duration-300 flex items-center gap-3 font-medium relative overflow-hidden group";
   const active = ({ isActive }) =>
     isActive
-      ? `${linkBase} bg-gradient-to-r from-primary-500 to-primary-700 text-white shadow-lg shadow-primary-500/30`
-      : `${linkBase} text-gray-600 hover:bg-gray-100`;
+      ? `${linkBase} bg-gradient-to-r from-primary-500 to-primary-700 text-white shadow-xl shadow-primary-500/40 hover:shadow-2xl hover:shadow-primary-500/50 hover:scale-[1.02] hover:-translate-y-0.5`
+      : `${linkBase} text-gray-600 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:text-primary-600 dark:hover:text-primary-400 hover:shadow-md hover:scale-[1.02] hover:-translate-y-0.5`;
 
   const navItems = [
     {
       to: "/",
-      label: "Dashboard",
+      label: "Tableau de bord",
       icon: (
         <svg
           className="w-5 h-5"
@@ -125,7 +126,7 @@ export default function App() {
     },
     {
       to: "/tasks",
-      label: "Tasks",
+      label: "Tâches",
       icon: (
         <svg
           className="w-5 h-5"
@@ -144,7 +145,7 @@ export default function App() {
     },
     {
       to: "/requests",
-      label: "Requests",
+      label: "Demandes",
       icon: (
         <svg
           className="w-5 h-5"
@@ -163,7 +164,7 @@ export default function App() {
     },
     {
       to: "/profile",
-      label: "Profile",
+      label: "Profil",
       icon: (
         <svg
           className="w-5 h-5"
@@ -184,7 +185,7 @@ export default function App() {
   // Settings section (only visible via URL unless we add permission wrapper around it)
   navItems.push({
     to: "/settings/roles",
-    label: "Rôles & Permissions",
+    label: "Rôles et permissions",
     icon: (
       <svg
         className="w-5 h-5"
@@ -203,20 +204,25 @@ export default function App() {
   });
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen flex bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
       {/* Sidebar (desktop) */}
       <motion.aside
         initial={{ x: -300 }}
         animate={{ x: 0 }}
-        className="hidden md:flex w-64 bg-white border-r border-gray-200 flex-col shadow-xl"
+        className="hidden lg:flex w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col shadow-xl transition-colors duration-300"
       >
         {/* Logo */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="flex items-center gap-3"
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.98 }}
+            className="flex items-center gap-3 cursor-pointer"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-lg">
+            <motion.div
+              whileHover={{ rotate: [0, -10, 10, -10, 0], scale: 1.1 }}
+              transition={{ duration: 0.6 }}
+              className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-lg hover:shadow-2xl hover:shadow-primary-500/50 transition-shadow duration-300"
+            >
               <svg
                 className="w-6 h-6 text-white"
                 fill="none"
@@ -230,12 +236,14 @@ export default function App() {
                   d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                 />
               </svg>
-            </div>
+            </motion.div>
             <div>
               <div className="font-bold text-lg bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
                 Espace Compta
               </div>
-              <div className="text-xs text-gray-500">Gestion simplifiée</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                Gestion simplifiée
+              </div>
             </div>
           </motion.div>
         </div>
@@ -250,23 +258,36 @@ export default function App() {
               transition={{ delay: i * 0.1 }}
             >
               <NavLink to={item.to} className={active} end={item.to === "/"}>
-                {item.icon}
-                {item.label}
+                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transform -translate-x-full group-hover:translate-x-full transition-all duration-700"></span>
+                <motion.span
+                  whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
+                  transition={{ duration: 0.4 }}
+                  className="relative z-10"
+                >
+                  {item.icon}
+                </motion.span>
+                <span className="relative z-10">{item.label}</span>
               </NavLink>
             </motion.div>
           ))}
         </nav>
 
         {/* User section */}
-        <div className="p-4 border-t border-gray-200">
-          <div className="mb-3 px-3 py-2 bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg">
-            <div className="text-sm font-medium text-gray-900">
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+          <div className="px-3 py-2 bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 rounded-lg">
+            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
               {user?.name || user?.email}
             </div>
-            <div className="text-xs text-gray-500">
-              {user?.roles?.[0] || "User"}
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              {user?.roles?.[0] || "Utilisateur"}
             </div>
           </div>
+
+          {/* Theme Toggle */}
+          <div className="flex justify-center">
+            <ThemeToggle />
+          </div>
+
           <motion.button
             whileHover={{
               scale: 1.03,
@@ -277,7 +298,7 @@ export default function App() {
             }}
             whileTap={{ scale: 0.97 }}
             onClick={() => setConfirmLogoutOpen(true)}
-            className="w-full px-4 py-2.5 rounded-lg border-2 border-gray-200 hover:border-red-300 hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all duration-300 flex items-center justify-center gap-2 font-semibold relative overflow-hidden group"
+            className="w-full px-4 py-2.5 rounded-lg border-2 border-gray-200 dark:border-gray-600 hover:border-red-300 dark:hover:border-red-500 bg-white dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-700 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400 transition-all duration-300 flex items-center justify-center gap-2 font-semibold relative overflow-hidden group"
           >
             <span className="absolute inset-0 bg-gradient-to-r from-transparent via-red-100/30 to-transparent opacity-0 group-hover:opacity-100 transform -translate-x-full group-hover:translate-x-full transition-all duration-700"></span>
             <svg
@@ -313,7 +334,7 @@ export default function App() {
               className={({ isActive }) =>
                 isActive
                   ? `${linkBase} bg-primary-600 text-white`
-                  : `${linkBase} text-gray-700 hover:bg-gray-100`
+                  : `${linkBase} text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700`
               }
               end={item.to === "/"}
               onClick={() => setMobileOpen(false)}
@@ -322,12 +343,18 @@ export default function App() {
               {item.label}
             </NavLink>
           ))}
+
+          {/* Theme Toggle in Mobile Drawer */}
+          <div className="pt-4 flex justify-center">
+            <ThemeToggle />
+          </div>
+
           <button
             onClick={() => {
               setMobileOpen(false);
               setConfirmLogoutOpen(true);
             }}
-            className="w-full px-4 py-2.5 rounded-lg border-2 border-gray-200 hover:border-red-300 hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all duration-300 flex items-center justify-center gap-2 font-semibold"
+            className="w-full px-4 py-2.5 rounded-lg border-2 border-gray-200 dark:border-gray-600 hover:border-red-300 dark:hover:border-red-500 bg-white dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-700 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400 transition-all duration-300 flex items-center justify-center gap-2 font-semibold"
           >
             Déconnexion
           </button>
@@ -337,13 +364,13 @@ export default function App() {
       {/* Main content */}
       <main className="flex-1 overflow-auto">
         {/* Top header with hamburger and user badge */}
-        <div className="sticky top-0 z-10 bg-white/70 backdrop-blur border-b border-gray-200">
-          <div className="px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+        <div className="sticky top-0 z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
+          <div className="px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               {/* Hamburger for mobile */}
               <button
                 type="button"
-                className="md:hidden inline-flex items-center justify-center rounded-md p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
+                className="lg:hidden inline-flex items-center justify-center rounded-md p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 transition-colors duration-200"
                 onClick={() => setMobileOpen(true)}
                 aria-label="Open menu"
               >
@@ -361,17 +388,22 @@ export default function App() {
                   />
                 </svg>
               </button>
-              <div className="text-sm sm:text-base font-semibold text-gray-800 md:hidden">
+              <div className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-200 lg:hidden">
                 Espace Compta
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="text-sm text-gray-600 hidden sm:block">
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Theme Toggle for Desktop (in header) */}
+              <div className="hidden lg:block">
+                <ThemeToggle />
+              </div>
+
+              <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 hidden sm:block truncate max-w-[120px] md:max-w-[200px]">
                 {user?.name || user?.email}
               </div>
               {Array.isArray(user?.roles) &&
                 user.roles.slice(0, 1).map((r) => (
-                  <Badge key={r} color="primary" className="uppercase">
+                  <Badge key={r} color="primary" className="uppercase text-xs">
                     {r}
                   </Badge>
                 ))}
@@ -382,7 +414,7 @@ export default function App() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8"
+          className="px-3 xs:px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 max-w-[100vw] overflow-x-hidden"
         >
           <Outlet />
         </motion.div>

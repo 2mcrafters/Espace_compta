@@ -75,6 +75,7 @@ Route::middleware(['web'])->group(function () {
     Route::get('overview', [OverviewController::class, 'index']);
 
     // Users (collaborators)
+    Route::post('users', [UsersController::class, 'store']);
     Route::get('users', [UsersController::class, 'index']);
     Route::get('users/{user}', [UsersController::class, 'show']);
     Route::put('users/{user}', [UsersController::class, 'update']);

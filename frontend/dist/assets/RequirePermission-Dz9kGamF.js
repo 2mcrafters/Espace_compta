@@ -1,1 +1,0 @@
-import{b as t,f as a,j as u}from"./index-6jc1YW1i.js";function m({perm:s,children:e,fallback:i=null}){const r=t(a),n=Array.isArray(s)?s:[s];return!!r&&Array.isArray(r.permissions)&&n.some(o=>r.permissions.includes(o))?e:i??u.jsxs("div",{className:"text-sm text-red-600",children:["403 — You don’t have permission:"," ",Array.isArray(s)?s.join(" | "):s]})}export{m as R};

@@ -10,9 +10,12 @@ use Spatie\Permission\Models\Permission;
 class AdminSettingsController extends Controller
 {
     // GET /roles-permissions
-    public function index()
+    public function index(Request $request)
     {
+        // ADMIN role bypasses all checks via Gate::before in AuthServiceProvider
+        // Others need users.edit permission
         Gate::authorize('users.edit');
+        
         $roles = Role::query()->orderBy('name')->get(['id','name']);
         $perms = Permission::query()->orderBy('name')->get(['id','name']);
 
@@ -31,7 +34,10 @@ class AdminSettingsController extends Controller
     // PUT /roles/{role}/permissions { permissions: string[] }
     public function updateRolePermissions(Request $request, Role $role)
     {
+        // ADMIN role bypasses all checks via Gate::before in AuthServiceProvider
+        // Others need users.edit permission
         Gate::authorize('users.edit');
+        
         $data = $request->validate([
             'permissions' => ['array'],
             'permissions.*' => ['string','exists:permissions,name']

@@ -36,6 +36,11 @@ class AuthServiceProvider extends ServiceProvider
             return null;
         });
 
+        // Define users.edit gate for admin settings
+        Gate::define('users.edit', function ($user) {
+            return $user->hasRole('ADMIN') || $user->can('users.edit');
+        });
+
         // Extra abilities for reports/exports not tied to a model
         Gate::define('viewReports', function ($user) {
             return $user->can('reports.view') || $user->hasAnyRole(['ADMIN','CHEF_EQUIPE']);

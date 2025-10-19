@@ -189,7 +189,7 @@ export default function Clients() {
                     Email
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Telephone
+                    Téléphone
                   </th>
                   {canSeeContract && (
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
@@ -237,10 +237,17 @@ export default function Clients() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.05 }}
                       whileHover={{
-                        backgroundColor: "rgba(243, 244, 246, 0.5)",
+                        backgroundColor: "rgba(243, 244, 246, 0.8)",
+                        scale: 1.01,
+                        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
                       }}
-                      className="transition-colors"
+                      className="transition-all duration-300 cursor-pointer relative group"
                     >
+                      {/* Hover indicator */}
+                      <motion.td
+                        className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-400 to-primary-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        initial={false}
+                      />
                       <td className="px-6 py-4">
                         <div className="flex items-center">
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center text-white font-bold mr-3 shadow-lg">
