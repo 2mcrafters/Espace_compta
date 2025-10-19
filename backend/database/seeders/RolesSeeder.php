@@ -10,14 +10,20 @@ class RolesSeeder extends Seeder
 {
     public function run(): void
     {
-        // Define permissions
+        // Define permissions (function-level)
         $permissions = [
-            'clients.view',
-            'clients.edit',
-            'tasks.manage',
-            'time.approve',
-            'requests.manage',
-            'exports.view',
+            // Portfolios
+            'portfolios.view', 'portfolios.edit',
+            // Clients (dossiers)
+            'clients.view', 'clients.edit',
+            // Tasks
+            'tasks.manage', 'tasks.update',
+            // Users & rates
+            'users.view', 'users.edit', 'users.rate.set',
+            // Time / productivity
+            'time.approve', 'reports.view', 'exports.view',
+            // Requests (demande clients)
+            'requests.manage', 'requests.view',
         ];
 
         foreach ($permissions as $perm) {
@@ -30,27 +36,23 @@ class RolesSeeder extends Seeder
         $collab = Role::firstOrCreate(['name' => 'COLLABORATEUR', 'guard_name' => 'web']);
         $assistant = Role::firstOrCreate(['name' => 'ASSISTANT', 'guard_name' => 'web']);
 
-        // Assign permissions
+        // Assign permissions (base matrix)
         $admin->syncPermissions($permissions);
 
         $chefPerms = [
-            'clients.view',
-            'clients.edit',
-            'tasks.manage',
-            'requests.manage',
-            'exports.view',
+            'portfolios.view', 'clients.view', 'clients.edit',
+            'tasks.manage', 'tasks.update', 'time.approve',
+            'reports.view', 'exports.view', 'requests.view',
         ];
         $chef->syncPermissions($chefPerms);
 
         $collabPerms = [
-            'clients.view',
-            'tasks.manage',
+            'clients.view', 'tasks.update',
         ];
         $collab->syncPermissions($collabPerms);
 
         $assistantPerms = [
-            'clients.view',
-            'requests.manage',
+            'clients.view', 'requests.manage', 'requests.view',
         ];
         $assistant->syncPermissions($assistantPerms);
     }

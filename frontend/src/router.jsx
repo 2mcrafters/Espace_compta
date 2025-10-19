@@ -20,13 +20,17 @@ function Protected({ children }) {
 const Login = React.lazy(() => import('./pages/Login'))
 const Dashboard = React.lazy(() => import('./pages/Dashboard'))
 const Clients = React.lazy(() => import('./pages/Clients'))
-const Tasks = React.lazy(() => import('./pages/Tasks'))
-const Requests = React.lazy(() => import('./pages/Requests'))
-const Profile = React.lazy(() => import('./pages/Profile'))
+const Portfolios = React.lazy(() => import("./pages/Portfolios"));
+const Tasks = React.lazy(() => import("./pages/Tasks"));
+const Requests = React.lazy(() => import("./pages/Requests"));
+const Profile = React.lazy(() => import("./pages/Profile"));
+const Collaborators = React.lazy(() => import("./pages/Collaborators"));
+const SettingsRoles = React.lazy(() => import("./pages/SettingsRoles"));
+const Reports = React.lazy(() => import("./pages/Reports"));
 
 const router = createBrowserRouter([
   {
-    path: '/login',
+    path: "/login",
     element: (
       <React.Suspense fallback={<div className="p-4">Loading...</div>}>
         <Login />
@@ -34,7 +38,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: '/',
+    path: "/",
     element: (
       <Protected>
         <App />
@@ -47,42 +51,74 @@ const router = createBrowserRouter([
           <React.Suspense fallback={<div className="p-4">Loading...</div>}>
             <Dashboard />
           </React.Suspense>
-        )
+        ),
       },
       {
-        path: 'clients',
+        path: "clients",
         element: (
           <React.Suspense fallback={<div className="p-4">Loading...</div>}>
             <Clients />
           </React.Suspense>
-        )
+        ),
       },
       {
-        path: 'tasks',
+        path: "portfolios",
+        element: (
+          <React.Suspense fallback={<div className="p-4">Loading...</div>}>
+            <Portfolios />
+          </React.Suspense>
+        ),
+      },
+      {
+        path: "tasks",
         element: (
           <React.Suspense fallback={<div className="p-4">Loading...</div>}>
             <Tasks />
           </React.Suspense>
-        )
+        ),
       },
       {
-        path: 'requests',
+        path: "requests",
         element: (
           <React.Suspense fallback={<div className="p-4">Loading...</div>}>
             <Requests />
           </React.Suspense>
-        )
-      }
-      ,{
-        path: 'profile',
+        ),
+      },
+      {
+        path: "profile",
         element: (
           <React.Suspense fallback={<div className="p-4">Loading...</div>}>
             <Profile />
           </React.Suspense>
-        )
-      }
-    ]
-  }
-])
+        ),
+      },
+      {
+        path: "reports",
+        element: (
+          <React.Suspense fallback={<div className="p-4">Loading...</div>}>
+            <Reports />
+          </React.Suspense>
+        ),
+      },
+      {
+        path: "collaborators",
+        element: (
+          <React.Suspense fallback={<div className="p-4">Loading...</div>}>
+            <Collaborators />
+          </React.Suspense>
+        ),
+      },
+      {
+        path: "settings/roles",
+        element: (
+          <React.Suspense fallback={<div className="p-4">Loading...</div>}>
+            <SettingsRoles />
+          </React.Suspense>
+        ),
+      },
+    ],
+  },
+]);
 
 export default router

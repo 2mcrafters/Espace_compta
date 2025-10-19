@@ -22,35 +22,85 @@ export default function Dashboard(){
   const last = new Date(today.getFullYear(), today.getMonth()+1, 0).toISOString().slice(0,10)
   const [range, setRange] = React.useState({ start: first, end: last })
   const { data, isLoading } = useProductivity(range.start, range.end)
+  const { data: overview } = useQuery({
+    queryKey: ["overview"],
+    queryFn: async () => (await api.get("/overview")).data,
+  });
 
   const totalMinutes = React.useMemo(() => {
-    if (!data) return 0
-    const c = data.per_client?.reduce((a,b)=>a + Number(b.minutes||0), 0) || 0
-    return c
-  }, [data])
+    if (!data) return 0;
+    const c =
+      data.per_client?.reduce((a, b) => a + Number(b.minutes || 0), 0) || 0;
+    return c;
+  }, [data]);
   const topClient = React.useMemo(() => {
-    const arr = data?.per_client || []
-    if (arr.length===0) return '—'
-    const top = arr.reduce((m, x) => Number(x.minutes) > Number(m.minutes) ? x : m, arr[0])
-    return `Client #${top.client_id} (${top.minutes}m)`
-  }, [data])
+    const arr = data?.per_client || [];
+    if (arr.length === 0) return "—";
+    const top = arr.reduce(
+      (m, x) => (Number(x.minutes) > Number(m.minutes) ? x : m),
+      arr[0]
+    );
+    return `Client #${top.client_id} (${top.minutes}m)`;
+  }, [data]);
   const topUser = React.useMemo(() => {
-    const arr = data?.per_user || []
-    if (arr.length===0) return '—'
-    const top = arr.reduce((m, x) => Number(x.minutes) > Number(m.minutes) ? x : m, arr[0])
-    return `User #${top.user_id} (${top.minutes}m)`
-  }, [data])
+    const arr = data?.per_user || [];
+    if (arr.length === 0) return "—";
+    const top = arr.reduce(
+      (m, x) => (Number(x.minutes) > Number(m.minutes) ? x : m),
+      arr[0]
+    );
+    return `User #${top.user_id} (${top.minutes}m)`;
+  }, [data]);
 
   const kpis = [
-    { title: 'Total minutes', value: totalMinutes, icon: '⏱️', color: 'from-primary-400 to-primary-600', textColor: 'text-primary-700' },
-    { title: 'Top client', value: topClient, icon: '🏆', color: 'from-purple-500 to-pink-500', textColor: 'text-pink-600' },
-    { title: 'Top collaborator', value: topUser, icon: '⭐', color: 'from-orange-500 to-red-500', textColor: 'text-red-600' }
-  ]
+    {
+      title: "Total minutes",
+      value: totalMinutes,
+      icon: "⏱️",
+      color: "from-primary-400 to-primary-600",
+      textColor: "text-primary-700",
+    },
+    {
+      title: "Top client",
+      value: topClient,
+      icon: "🏆",
+      color: "from-purple-500 to-pink-500",
+      textColor: "text-pink-600",
+    },
+    {
+      title: "Top collaborator",
+      value: topUser,
+      icon: "⭐",
+      color: "from-orange-500 to-red-500",
+      textColor: "text-red-600",
+    },
+    {
+      title: "Clients",
+      value: overview?.counts?.clients ?? "—",
+      icon: "👥",
+      color: "from-blue-500 to-sky-600",
+      textColor: "text-sky-600",
+    },
+    {
+      title: "Portefeuilles",
+      value: overview?.counts?.portfolios ?? "—",
+      icon: "🗂️",
+      color: "from-indigo-500 to-purple-600",
+      textColor: "text-indigo-600",
+    },
+    {
+      title: "Documents",
+      value: overview?.counts?.docs ?? "—",
+      icon: "📄",
+      color: "from-emerald-500 to-teal-600",
+      textColor: "text-emerald-600",
+    },
+  ];
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col md:flex-row md:items-end md:justify-between gap-4"
@@ -62,11 +112,29 @@ export default function Dashboard(){
           <p className="text-gray-600">Vue d'ensemble de votre productivité</p>
         </div>
         <div className="flex flex-wrap items-end gap-3">
-          <DateRangePicker start={range.start} end={range.end} onChange={setRange} />
-          <a target="_blank" rel="noreferrer" href="http://127.0.0.1:8002/api/exports/time-excel">
+          <DateRangePicker
+            start={range.start}
+            end={range.end}
+            onChange={setRange}
+          />
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href="http://127.0.0.1:8002/api/exports/time-excel"
+          >
             <Button className="!from-emerald-500 !to-green-600 !shadow-emerald-500/30 hover:!shadow-emerald-500/50 hover:!from-emerald-600 hover:!to-green-700">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
               </svg>
               Exporter (Excel)
             </Button>
@@ -82,20 +150,24 @@ export default function Dashboard(){
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay: i * 0.1 }}
-            whileHover={{ 
-              y: -8, 
+            whileHover={{
+              y: -8,
               scale: 1.03,
-              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
-              transition: { type: 'spring', stiffness: 300 }
+              boxShadow: "0 25px 50px rgba(0, 0, 0, 0.15)",
+              transition: { type: "spring", stiffness: 300 },
             }}
             className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 p-6 shadow-lg transition-all duration-300 cursor-pointer group"
           >
-            <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${kpi.color} opacity-10 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:opacity-20 transition-opacity duration-300`} />
+            <div
+              className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${kpi.color} opacity-10 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:opacity-20 transition-opacity duration-300`}
+            />
             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/50 to-transparent opacity-0 group-hover:opacity-100 transform -translate-x-full group-hover:translate-x-full transition-all duration-1000" />
             <div className="relative">
               <div className="flex items-center justify-between mb-3">
-                <div className="text-sm font-medium text-gray-600">{kpi.title}</div>
-                <motion.div 
+                <div className="text-sm font-medium text-gray-600">
+                  {kpi.title}
+                </div>
+                <motion.div
                   animate={{ rotate: [0, 10, -10, 0] }}
                   transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
                   whileHover={{ scale: 1.2, rotate: 360 }}
@@ -116,13 +188,59 @@ export default function Dashboard(){
         ))}
       </div>
 
-      {/* Charts */}
+      {/* Charts and activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <BarChart title="Minutes par client" data={(data?.per_client||[]).map(x => ({ label: `C${x.client_id}`, value: Number(x.minutes||0) }))} isLoading={isLoading} />
-        <BarChart title="Minutes par collaborateur" data={(data?.per_user||[]).map(x => ({ label: `U${x.user_id}`, value: Number(x.minutes||0) }))} isLoading={isLoading} />
+        <BarChart
+          title="Minutes par client"
+          data={(data?.per_client || []).map((x) => ({
+            label: `C${x.client_id}`,
+            value: Number(x.minutes || 0),
+          }))}
+          isLoading={isLoading}
+        />
+        <BarChart
+          title="Minutes par collaborateur"
+          data={(data?.per_user || []).map((x) => ({
+            label: `U${x.user_id}`,
+            value: Number(x.minutes || 0),
+          }))}
+          isLoading={isLoading}
+        />
+        <div className="lg:col-span-2 rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
+          <h3 className="font-semibold text-lg mb-4 text-gray-900">
+            Activité récente
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="text-sm font-semibold text-gray-600 mb-2">
+                Nouveaux documents
+              </h4>
+              <ul className="space-y-2">
+                {(overview?.recent_docs || []).map((d) => (
+                  <li key={d.id} className="text-sm text-gray-700">
+                    {d.title}{" "}
+                    <span className="text-gray-400">({d.category || "—"})</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-gray-600 mb-2">
+                Nouveaux clients
+              </h4>
+              <ul className="space-y-2">
+                {(overview?.recent_clients || []).map((c) => (
+                  <li key={c.id} className="text-sm text-gray-700">
+                    {c.raison_sociale}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  )
+  );
 }
 
 function BarChart({ title, data, isLoading }){

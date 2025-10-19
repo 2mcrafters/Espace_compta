@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Client;
 use App\Models\TimeEntry;
+use App\Models\UserRate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -39,6 +40,84 @@ class ReportController extends Controller
             'per_client' => $perClient,
             'per_user' => $perUser,
         ]);
+    }
+
+    // GET /reports/timesheet?user_id=&from=&to=
+    public function timesheet(Request $request)
+    {
+        $this->authorize('viewReports', Client::class);
+        $validated = $request->validate([
+            'user_id' => ['nullable','exists:users,id'],
+            'from' => ['required','date'],
+            'to' => ['required','date','after_or_equal:from'],
+        ]);
+        $q = TimeEntry::query()->with(['task:id,client_id','user:id,name,email'])
+            ->whereBetween('start_at', [$validated['from'].' 00:00:00', $validated['to'].' 23:59:59'])
+            ->orderBy('start_at');
+        if (!empty($validated['user_id'])) {
+            $q->where('user_id', $validated['user_id']);
+        }
+        $entries = $q->get()->map(function ($e) {
+            return [
+                'start_at' => optional($e->start_at)->toDateTimeString(),
+                'end_at' => optional($e->end_at)->toDateTimeString(),
+                'minutes' => $e->duration_min,
+                'task_id' => $e->task_id,
+                'client_id' => optional($e->task)->client_id,
+                'user' => [ 'id' => $e->user->id, 'name' => $e->user->name, 'email' => $e->user->email ],
+                'comment' => $e->comment,
+            ];
+        });
+        return response()->json(['entries' => $entries]);
+    }
+
+    // GET /reports/client-costs?from=&to=
+    // Restricted to users with users.rate.set or ADMIN/CHEF_EQUIPE (via policy/gate)
+    public function clientCosts(Request $request)
+    {
+        $this->authorize('viewReports', Client::class);
+        // Enforce additional permission for seeing costs
+        abort_unless($request->user()->can('users.rate.set') || $request->user()->hasAnyRole(['ADMIN','CHEF_EQUIPE']), 403);
+
+        $validated = $request->validate([
+            'from' => ['required','date'],
+            'to' => ['required','date','after_or_equal:from'],
+        ]);
+        $from = $validated['from'];
+        $to = $validated['to'];
+
+        // Compute minutes per user per client, then apply latest user rate <= date range end
+        $rows = TimeEntry::select('tasks.client_id','time_entries.user_id', DB::raw('SUM(COALESCE(duration_min, TIMESTAMPDIFF(MINUTE, start_at, end_at))) as minutes'))
+            ->join('tasks','tasks.id','=','time_entries.task_id')
+            ->whereBetween('start_at', [$from.' 00:00:00', $to.' 23:59:59'])
+            ->groupBy('tasks.client_id','time_entries.user_id')
+            ->get();
+
+        $userRates = UserRate::select('user_id','hourly_rate_mad','effective_from')
+            ->orderBy('effective_from','desc')->get()->groupBy('user_id');
+
+        $perClient = [];
+        foreach ($rows as $r) {
+            $rate = optional($userRates->get($r->user_id))->firstWhere('effective_from', '<=', $to);
+            $hourly = $rate->hourly_rate_mad ?? 0;
+            $hours = ($r->minutes ?? 0) / 60.0;
+            $cost = round($hours * (float) $hourly, 2);
+            if (!isset($perClient[$r->client_id])) $perClient[$r->client_id] = ['minutes' => 0, 'cost' => 0.0];
+            $perClient[$r->client_id]['minutes'] += (int) $r->minutes;
+            $perClient[$r->client_id]['cost'] += $cost;
+        }
+
+        // Normalize
+        $result = [];
+        foreach ($perClient as $clientId => $agg) {
+            $result[] = [
+                'client_id' => $clientId,
+                'minutes' => $agg['minutes'],
+                'hours' => round($agg['minutes'] / 60, 2),
+                'cost_mad' => round($agg['cost'], 2),
+            ];
+        }
+        return response()->json(['per_client' => $result]);
     }
 
     // GET /exports/time-excel - stream CSV compatible with Excel

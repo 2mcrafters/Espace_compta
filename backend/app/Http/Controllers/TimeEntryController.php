@@ -36,10 +36,19 @@ class TimeEntryController extends Controller
     {
         $this->authorize('update', $entry);
         $data = $request->validate([
-            'end_at' => ['nullable','date']
+            'end_at' => ['nullable','date'],
+            'comment' => ['nullable','string','max:2000'],
+            'duration_min' => ['nullable','integer','min:1']
         ]);
         $end = $data['end_at'] ?? now();
-        $entry->update(['end_at' => $end]);
+        $payload = ['end_at' => $end];
+        if (array_key_exists('comment', $data)) {
+            $payload['comment'] = $data['comment'];
+        }
+        if (array_key_exists('duration_min', $data)) {
+            $payload['duration_min'] = $data['duration_min'];
+        }
+        $entry->update($payload);
         return response()->json($entry->refresh());
     }
 }

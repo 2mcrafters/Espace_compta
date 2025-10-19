@@ -49,3 +49,27 @@ Open http://localhost:5173 and click "Ping API" to verify end-to-end.
 - CORS is enabled via Laravel's global `HandleCors` middleware and config `config/cors.php` allowing `http://localhost:5173` by default. You can adjust `CORS_ALLOWED_ORIGINS` in `backend/.env` if needed.
 - To change DB credentials, edit `backend/.env` and re-run migrations.
 # Espace_compta
+
+## GED confidentiality
+
+- When uploading a client document, you can mark it as confidential (Confidentiel toggle in the UI).
+- Only ADMIN and CHEF_EQUIPE can list and download confidential documents. Others will not see them.
+- Endpoints:
+  - GET `/api/clients/{client}/documents` (filters confidential docs for non-privileged)
+  - POST `/api/clients/{client}/documents` (multipart: file, category, title, is_confidential)
+  - GET `/api/clients/{client}/documents/{document}/download`
+  - DELETE `/api/clients/{client}/documents/{document}`
+
+## Collaborators assignment
+
+- You can assign collaborators to Portfolios and Clients via the UI modals.
+- For Tasks, use the assignee dropdown on each task card (requires `tasks.manage`).
+- Users lookup endpoint for dropdowns: GET `/api/users/lookup`.
+
+## Tasks workflow
+
+- Columns by status: En attente, En cours, En validation, Terminée.
+- Filters: category, nature, and owner.
+- Quick-edit: change status from a select and adjust progress with a slider.
+- Start/Stop time tracking buttons per task; see live running state.
+- Assignees are shown as initials bubbles on task cards.

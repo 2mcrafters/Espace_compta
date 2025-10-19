@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\RequestModel;
 use App\Models\RequestFile;
+use App\Models\RequestMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class RequestController extends Controller
 {
@@ -44,6 +46,8 @@ class RequestController extends Controller
             'title' => ['sometimes','string','max:255'],
             'status' => ['sometimes','in:EN_ATTENTE,EN_RELANCE,RECU,INCOMPLET,VALIDE'],
             'due_date' => ['sometimes','date','nullable'],
+            'period_from' => ['sometimes','date','nullable'],
+            'period_to' => ['sometimes','date','nullable'],
         ]);
         $requestModel->update($data);
         return response()->json($requestModel);
@@ -102,5 +106,67 @@ class RequestController extends Controller
         Storage::disk('public')->delete($file->path);
         $file->delete();
         return response()->json(['message' => 'deleted']);
+    }
+
+    // POST /requests/{requestModel}/messages { message_html }
+    public function addMessage(Request $request, RequestModel $requestModel)
+    {
+        $this->authorize('update', $requestModel);
+        $data = $request->validate(['message_html' => ['required','string']]);
+        $msg = RequestMessage::create([
+            'request_id' => $requestModel->id,
+            'user_id' => $request->user()->id,
+            'message_html' => $data['message_html'],
+        ]);
+        return response()->json($msg->load('user'), 201);
+    }
+
+    // POST /requests/{requestModel}/remind { note }
+    public function remind(Request $request, RequestModel $requestModel)
+    {
+        $this->authorize('update', $requestModel);
+        $data = $request->validate(['note' => ['nullable','string','max:500']]);
+        $reminders = $requestModel->reminders ?? [];
+        $reminders[] = [
+            'at' => now()->toISOString(),
+            'by' => $request->user()->id,
+            'note' => $data['note'] ?? null,
+        ];
+        $requestModel->update([
+            'status' => 'EN_RELANCE',
+            'reminders_count' => ($requestModel->reminders_count ?? 0) + 1,
+            'reminders' => $reminders,
+            'first_sent_at' => $requestModel->first_sent_at ?: now(),
+        ]);
+        return response()->json(['message' => 'reminded', 'reminders' => $reminders]);
+    }
+
+    // GET /requests/metrics?from=&to=
+    public function metrics(Request $request)
+    {
+        $this->authorize('viewAny', RequestModel::class);
+        $validated = $request->validate([
+            'from' => ['nullable','date'],
+            'to' => ['nullable','date','after_or_equal:from'],
+        ]);
+        $q = RequestModel::query();
+        if (!empty($validated['from'])) $q->whereDate('created_at', '>=', $validated['from']);
+        if (!empty($validated['to'])) $q->whereDate('created_at', '<=', $validated['to']);
+        $total = (clone $q)->count();
+    $byStatus = (clone $q)->select('status', DB::raw('COUNT(*) as c'))->groupBy('status')->pluck('c','status');
+        $responded = (clone $q)->whereNotNull('responded_at')->count();
+        // avg delay: responded_at - first_sent_at for responded ones
+        $avgDelayMin = (clone $q)
+            ->whereNotNull('responded_at')->whereNotNull('first_sent_at')
+            ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, first_sent_at, responded_at)) as avgm')
+            ->value('avgm');
+        $completeness = (clone $q)->where('status','VALIDE')->count() / max($total,1);
+        return response()->json([
+            'total' => $total,
+            'by_status' => $byStatus,
+            'responded' => $responded,
+            'avg_response_minutes' => $avgDelayMin ? (int) round($avgDelayMin) : null,
+            'completeness_ratio' => round($completeness, 3),
+        ]);
     }
 }

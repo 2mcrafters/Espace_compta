@@ -16,13 +16,25 @@ class RequestModel extends Model
     protected $fillable = [
         'client_id',
         'created_by',
+        'task_id',
         'title',
         'status',
         'due_date',
+        'period_from',
+        'period_to',
+        'reminders_count',
+        'first_sent_at',
+        'responded_at',
+        'reminders',
     ];
 
     protected $casts = [
         'due_date' => 'date',
+        'period_from' => 'date',
+        'period_to' => 'date',
+        'first_sent_at' => 'datetime',
+        'responded_at' => 'datetime',
+        'reminders' => 'array',
     ];
 
     public function client(): BelongsTo
@@ -33,6 +45,11 @@ class RequestModel extends Model
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function task(): BelongsTo
+    {
+        return $this->belongsTo(Task::class);
     }
 
     public function requestMessages(): HasMany

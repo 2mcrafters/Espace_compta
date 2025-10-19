@@ -95,8 +95,7 @@
 			],
 			"isBackground": true,
 			"group": "build"
-		}
-		,
+		},
 		{
 			"label": "Serve backend (PHP 8000)",
 			"type": "shell",
@@ -109,6 +108,223 @@
 				"backend/public/index.php"
 			],
 			"isBackground": true,
+			"group": "build"
+		},
+		{
+			"label": "Run Laravel migrations",
+			"type": "shell",
+			"command": "php",
+			"args": [
+				"artisan",
+				"migrate"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Frontend typecheck/build quick",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"build",
+				"--prefix",
+				"frontend"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Run Laravel migrations (confidential)",
+			"type": "shell",
+			"command": "php",
+			"args": [
+				"artisan",
+				"migrate"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Frontend typecheck/build quick",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"build",
+				"--prefix",
+				"frontend"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Run Laravel migrations (users profile)",
+			"type": "shell",
+			"command": "php",
+			"args": [
+				"artisan",
+				"migrate"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Frontend typecheck/build quick",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"build",
+				"--prefix",
+				"frontend"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Frontend typecheck/build quick",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"build",
+				"--prefix",
+				"frontend"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Frontend typecheck/build quick",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"build",
+				"--prefix",
+				"frontend"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Backend: run phpunit",
+			"type": "shell",
+			"command": "php",
+			"args": [
+				"artisan",
+				"test",
+				"-q"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$phpcbf"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Frontend typecheck/build quick",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"build",
+				"--prefix",
+				"frontend"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Backend: run phpunit",
+			"type": "shell",
+			"command": "php",
+			"args": [
+				"artisan",
+				"test",
+				"-q"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Frontend typecheck/build quick",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"build",
+				"--prefix",
+				"frontend"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Run Laravel migrations",
+			"type": "shell",
+			"command": "php",
+			"args": [
+				"artisan",
+				"migrate"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Backend: run phpunit",
+			"type": "shell",
+			"command": "php",
+			"args": [
+				"artisan",
+				"test",
+				"-q"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Frontend typecheck/build quick",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"build",
+				"--prefix",
+				"frontend"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Frontend typecheck/build quick",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"build",
+				"--prefix",
+				"frontend"
+			],
+			"isBackground": false,
 			"group": "build"
 		}
 	]
