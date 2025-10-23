@@ -32,7 +32,6 @@ export default function ConfirmDialog({
             whileHover={{
               scale: 1.03,
               y: -1,
-              boxShadow: "0 10px 20px rgba(244, 63, 94, 0.35)",
             }}
             whileTap={{ scale: 0.97 }}
             onClick={onConfirm}

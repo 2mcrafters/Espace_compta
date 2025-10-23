@@ -35,7 +35,7 @@ export default function Modal({
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className={`relative z-10 w-full ${
               className || "max-w-lg"
-            } max-h-[88vh] flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-2xl border border-gray-200 dark:border-gray-700`}
+            } max-h-[88vh] flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700`}
           >
             {title && (
               <div className="shrink-0 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-sky-50 to-blue-50 dark:from-gray-800 dark:to-gray-800 px-6 py-4 rounded-t-2xl">

@@ -281,13 +281,12 @@ function Row({ user, index, onEdit, onSetRate }) {
       whileHover={{
         backgroundColor: "rgba(243, 244, 246, 0.8)",
         scale: 1.005,
-        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
       }}
       className="transition-all duration-300 relative group"
     >
       <td className="px-6 py-4">
         <div className="flex items-center">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center text-white font-bold mr-3 shadow-lg">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center text-white font-bold mr-3">
             {(
               user.first_name?.[0] ||
               user.last_name?.[0] ||
@@ -334,11 +333,10 @@ function Row({ user, index, onEdit, onSetRate }) {
               whileHover={{
                 scale: 1.05,
                 y: -2,
-                boxShadow: "0 10px 25px rgba(75, 85, 99, 0.4)",
               }}
               whileTap={{ scale: 0.95 }}
               onClick={onEdit}
-              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white text-sm font-medium shadow-md transition-all duration-300 relative overflow-hidden group"
+              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white text-sm font-medium transition-all duration-300 relative overflow-hidden group"
             >
               <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transform -translate-x-full group-hover:translate-x-full transition-all duration-500"></span>
               <span className="relative">Modifier</span>
@@ -349,11 +347,10 @@ function Row({ user, index, onEdit, onSetRate }) {
               whileHover={{
                 scale: 1.05,
                 y: -2,
-                boxShadow: "0 10px 25px rgba(99, 102, 241, 0.4)",
               }}
               whileTap={{ scale: 0.95 }}
               onClick={onSetRate}
-              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white text-sm font-medium shadow-md transition-all duration-300 relative overflow-hidden group"
+              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white text-sm font-medium transition-all duration-300 relative overflow-hidden group"
             >
               <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transform -translate-x-full group-hover:translate-x-full transition-all duration-500"></span>
               <span className="relative">Taux horaire</span>

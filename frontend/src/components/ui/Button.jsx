@@ -29,16 +29,15 @@ export default function Button({ className = "", children, ...props }) {
   };
 
   const base =
-    "inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-primary-500 to-primary-700 hover:from-primary-600 hover:to-primary-800 text-white font-medium shadow-lg shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 relative overflow-hidden group";
+    "inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-primary-500 to-primary-700 hover:from-primary-600 hover:to-primary-800 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 relative overflow-hidden group";
 
   return (
     <motion.button
       whileHover={{
-        scale: 1.05,
-        y: -3,
-        boxShadow: "0 25px 50px rgba(0, 68, 147, 0.5)",
+        scale: 1.04,
+        y: -2,
       }}
-      whileTap={{ scale: 0.95, y: -1 }}
+      whileTap={{ scale: 0.96, y: -1 }}
       transition={{ type: "spring", stiffness: 500, damping: 20 }}
       className={`${base} ${className}`}
       {...props}

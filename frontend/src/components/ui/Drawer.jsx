@@ -25,7 +25,7 @@ export default function Drawer({ open, side='right', title, onClose, children, f
             animate="visible"
             exit="exit"
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className={`absolute top-0 ${sideClasses} h-full w-full max-w-md bg-white dark:bg-gray-900 dark:text-gray-100 shadow-2xl flex flex-col`}
+            className={`absolute top-0 ${sideClasses} h-full w-full max-w-md bg-white dark:bg-gray-900 dark:text-gray-100 flex flex-col`}
           >
             <div className="border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 px-4 sm:px-6 py-4 flex items-center justify-between">
               <div className="font-semibold text-gray-900 dark:text-gray-100">

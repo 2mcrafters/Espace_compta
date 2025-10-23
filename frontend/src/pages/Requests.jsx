@@ -85,7 +85,7 @@ export default function Requests() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden"
+          className="bg-white rounded-2xl border border-gray-200 overflow-hidden"
         >
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -142,7 +142,7 @@ export default function Requests() {
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center">
-                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-400 to-pink-600 flex items-center justify-center text-white font-bold mr-3 shadow-lg">
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-400 to-pink-600 flex items-center justify-center text-white font-bold mr-3">
                             <svg
                               className="w-5 h-5"
                               fill="none"
@@ -321,7 +321,7 @@ function RequestDetails({ id, onStatus }) {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ delay: i * 0.05 }}
-                className="border-2 border-gray-200 rounded-xl p-4 bg-white hover:shadow-md transition-shadow"
+                className="border-2 border-gray-200 rounded-xl p-4 bg-white transition-colors"
               >
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center text-white text-xs font-bold">
@@ -410,7 +410,7 @@ function RequestDetails({ id, onStatus }) {
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ delay: i * 0.05 }}
                 whileHover={{ scale: 1.02 }}
-                className="flex items-center justify-between border-2 border-gray-200 rounded-xl p-3 bg-white hover:shadow-md transition-all"
+                className="flex items-center justify-between border-2 border-gray-200 rounded-xl p-3 bg-white transition-all"
               >
                 <a
                   className="flex items-center gap-3 text-primary-700 hover:text-primary-800 font-medium"

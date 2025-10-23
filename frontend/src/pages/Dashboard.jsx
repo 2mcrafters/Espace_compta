@@ -282,7 +282,7 @@ export default function Dashboard() {
             rel="noreferrer"
             href="http://127.0.0.1:8002/api/exports/time-excel"
           >
-            <Button className="!from-emerald-500 !to-green-600 !shadow-emerald-500/30 hover:!shadow-emerald-500/50 hover:!from-emerald-600 hover:!to-green-700">
+            <Button className="!from-emerald-500 !to-green-600 hover:!from-emerald-600 hover:!to-green-700">
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -318,7 +318,7 @@ export default function Dashboard() {
             >
               <KPIWrapper
                 {...wrapperProps}
-                className="block relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer"
+                className="block relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 sm:p-6 transition-transform duration-300 cursor-pointer"
               >
                 <motion.div
                   whileHover={{
@@ -345,7 +345,7 @@ export default function Dashboard() {
                         )}
                       </div>
                       <div
-                        className={`relative p-2 sm:p-3 rounded-xl bg-gradient-to-br ${kpi.color} text-white shadow-lg group-hover:shadow-xl transition-shadow duration-300`}
+                        className={`relative p-2 sm:p-3 rounded-xl bg-gradient-to-br ${kpi.color} text-white`}
                       >
                         <div className="relative w-6 h-6 sm:w-auto sm:h-auto">
                           {kpi.icon}
@@ -655,7 +655,7 @@ function QuickActionCard({ title, icon, link, color }) {
       <motion.div
         whileHover={{ scale: 1.05, y: -4 }}
         whileTap={{ scale: 0.98 }}
-        className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${color} p-4 sm:p-6 text-white shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer group`}
+        className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${color} p-4 sm:p-6 text-white transition-all duration-300 cursor-pointer group`}
       >
         <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         <div className="relative flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0">

@@ -64,7 +64,7 @@ export default function Login() {
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
               className="flex flex-col items-center mb-8"
             >
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-lg flex items-center justify-center mb-4 shadow-lg">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-lg flex items-center justify-center mb-4">
                 <svg
                   className="w-10 h-10 text-white"
                   fill="none"
@@ -156,7 +156,7 @@ export default function Login() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full !from-primary-600 !to-primary-700 !bg-primary-600 !text-white hover:!from-white hover:!to-white hover:!bg-white hover:!text-primary-700 !shadow-xl hover:!shadow-2xl hover:!scale-105 !font-bold !py-4 !text-lg !border-2 !border-white/20 hover:!border-primary-600 !text-center !justify-center transition-all duration-300"
+                  className="w-full !from-primary-600 !to-primary-700 !bg-primary-600 !text-white hover:!from-white hover:!to-white hover:!bg-white hover:!text-primary-700 hover:!scale-105 !font-bold !py-4 !text-lg !border-2 !border-white/20 hover:!border-primary-600 !text-center !justify-center transition-all duration-300"
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2 w-full">

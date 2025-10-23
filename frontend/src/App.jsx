@@ -25,7 +25,7 @@ export default function App() {
     "px-4 py-2.5 rounded-xl transition-all duration-300 flex items-center gap-3 font-medium relative overflow-hidden group";
   const active = ({ isActive }) =>
     isActive
-      ? `${linkBase} bg-gradient-to-r from-primary-500 to-primary-700 text-white shadow-xl shadow-primary-500/40 hover:scale-[1.02] hover:-translate-y-0.5`
+      ? `${linkBase} bg-gradient-to-r from-primary-500 to-primary-700 text-white hover:scale-[1.02] hover:-translate-y-0.5`
       : `${linkBase} text-gray-600 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:text-primary-600 dark:hover:text-primary-400 hover:scale-[1.02] hover:-translate-y-0.5`;
 
   const navItems = [
@@ -209,7 +209,7 @@ export default function App() {
       <motion.aside
         initial={{ x: -300 }}
         animate={{ x: 0 }}
-        className="hidden lg:flex w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col shadow-xl transition-colors duration-300"
+        className="hidden lg:flex w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col transition-colors duration-300"
       >
         {/* Logo */}
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
@@ -221,7 +221,7 @@ export default function App() {
             <motion.div
               whileHover={{ rotate: [0, -10, 10, -10, 0], scale: 1.1 }}
               transition={{ duration: 0.6 }}
-              className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 dark:from-primary-700 dark:to-primary-500 flex items-center justify-center shadow-lg transition-shadow duration-300"
+              className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 dark:from-primary-700 dark:to-primary-500 flex items-center justify-center"
             >
               <svg
                 className="w-6 h-6 text-white"
@@ -294,7 +294,6 @@ export default function App() {
               y: -2,
               borderColor: "rgb(252, 165, 165)",
               backgroundColor: "rgb(254, 242, 242)",
-              boxShadow: "0 8px 20px rgba(239, 68, 68, 0.2)",
             }}
             whileTap={{ scale: 0.97 }}
             onClick={() => setConfirmLogoutOpen(true)}
