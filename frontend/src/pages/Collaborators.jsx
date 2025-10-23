@@ -6,6 +6,7 @@ import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import RequirePermission from "../components/RequirePermission";
 import Modal from "../components/ui/Modal";
+import { useToast } from "../components/ui/Toaster";
 
 function useUsers() {
   return useQuery({
@@ -111,10 +112,10 @@ export default function Collaborators() {
       >
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent mb-2">
               Collaborateurs
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               Gérez vos collaborateurs et leurs informations
             </p>
           </div>
@@ -500,6 +501,7 @@ function SetRateModal({ user, onClose, onSave, saving }) {
 
 function CreateUserModal({ onClose, onCreated }) {
   const qc = useQueryClient();
+  const toast = useToast();
   const [form, setForm] = React.useState({
     first_name: "",
     last_name: "",
@@ -513,7 +515,9 @@ function CreateUserModal({ onClose, onCreated }) {
     roles: [],
     hourly_rate_mad: "",
     hourly_rate_effective_from: new Date().toISOString().slice(0, 10),
+    send_invite: false,
   });
+  const [errors, setErrors] = React.useState({});
   const { data: rolesPerms } = useQuery({
     queryKey: ["roles-permissions"],
     queryFn: async () => (await api.get("/roles-permissions")).data,
@@ -525,16 +529,24 @@ function CreateUserModal({ onClose, onCreated }) {
       return data;
     },
     onSuccess: () => {
+      toast.success("Utilisateur créé avec succès");
+      setErrors({});
       onCreated?.();
     },
     onError: (error) => {
-      alert(
-        `Erreur: ${
-          error.response?.data?.message ||
-          error.message ||
-          "Impossible de créer l'utilisateur"
-        }`
-      );
+      const resp = error.response;
+      if (resp?.status === 422 && resp.data?.errors) {
+        setErrors(resp.data.errors || {});
+        toast.error("Veuillez corriger les erreurs du formulaire");
+      } else if (resp?.status === 403) {
+        toast.error("Vous n'avez pas la permission de créer un utilisateur");
+      } else {
+        toast.error(
+          resp?.data?.message ||
+            error.message ||
+            "Impossible de créer l'utilisateur"
+        );
+      }
     },
   });
 
@@ -551,6 +563,7 @@ function CreateUserModal({ onClose, onCreated }) {
   }
   function submit(e) {
     e.preventDefault();
+    setErrors({});
     const payload = { ...form };
     payload.monthly_hours_target =
       payload.monthly_hours_target === ""
@@ -561,6 +574,10 @@ function CreateUserModal({ onClose, onCreated }) {
         ? null
         : Number(payload.yearly_hours_target);
     if (payload.hourly_rate_mad === "") delete payload.hourly_rate_mad;
+    // If sending invite, drop password so backend can ignore/auto-generate
+    if (payload.send_invite && payload.password === "") {
+      delete payload.password;
+    }
     createMutation.mutate(payload);
   }
 
@@ -581,7 +598,11 @@ function CreateUserModal({ onClose, onCreated }) {
           </Button>
           <Button
             onClick={submit}
-            disabled={createMutation.isPending || !form.email || !form.password}
+            disabled={
+              createMutation.isPending ||
+              !form.email ||
+              (!form.send_invite && !form.password)
+            }
           >
             Créer
           </Button>
@@ -594,11 +615,13 @@ function CreateUserModal({ onClose, onCreated }) {
             label="Prénom"
             value={form.first_name}
             onChange={(e) => update("first_name", e.target.value)}
+            error={errors.first_name?.[0]}
           />
           <Input
             label="Nom"
             value={form.last_name}
             onChange={(e) => update("last_name", e.target.value)}
+            error={errors.last_name?.[0]}
           />
           <Input
             label="Email"
@@ -606,28 +629,35 @@ function CreateUserModal({ onClose, onCreated }) {
             value={form.email}
             onChange={(e) => update("email", e.target.value)}
             required
+            error={errors.email?.[0]}
           />
           <Input
             label="Mot de passe"
             type="password"
             value={form.password}
             onChange={(e) => update("password", e.target.value)}
-            required
+            required={!form.send_invite}
+            disabled={form.send_invite}
+            placeholder={form.send_invite ? "Sera défini par l'invité" : ""}
+            error={errors.password?.[0]}
           />
           <Input
             label="Téléphone"
             value={form.phone}
             onChange={(e) => update("phone", e.target.value)}
+            error={errors.phone?.[0]}
           />
           <Input
             label="Identifiant interne"
             value={form.internal_id}
             onChange={(e) => update("internal_id", e.target.value)}
+            error={errors.internal_id?.[0]}
           />
           <Input
             label="Fonction"
             value={form.job_title}
             onChange={(e) => update("job_title", e.target.value)}
+            error={errors.job_title?.[0]}
           />
           <Input
             label="Objectif mensuel (h)"
@@ -635,6 +665,7 @@ function CreateUserModal({ onClose, onCreated }) {
             step="0.01"
             value={form.monthly_hours_target}
             onChange={(e) => update("monthly_hours_target", e.target.value)}
+            error={errors.monthly_hours_target?.[0]}
           />
           <Input
             label="Objectif annuel (h)"
@@ -642,6 +673,7 @@ function CreateUserModal({ onClose, onCreated }) {
             step="0.01"
             value={form.yearly_hours_target}
             onChange={(e) => update("yearly_hours_target", e.target.value)}
+            error={errors.yearly_hours_target?.[0]}
           />
         </div>
 
@@ -652,6 +684,7 @@ function CreateUserModal({ onClose, onCreated }) {
             step="0.01"
             value={form.hourly_rate_mad}
             onChange={(e) => update("hourly_rate_mad", e.target.value)}
+            error={errors.hourly_rate_mad?.[0]}
           />
           <Input
             label="Date d'effet"
@@ -660,11 +693,22 @@ function CreateUserModal({ onClose, onCreated }) {
             onChange={(e) =>
               update("hourly_rate_effective_from", e.target.value)
             }
+            error={errors.hourly_rate_effective_from?.[0]}
           />
         </div>
 
+        <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
+          <input
+            type="checkbox"
+            checked={form.send_invite}
+            onChange={(e) => update("send_invite", e.target.checked)}
+          />
+          Envoyer un email d'invitation (l'utilisateur définira son mot de
+          passe)
+        </label>
+
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
             Rôles
           </label>
           <div className="flex flex-wrap gap-2">
@@ -681,7 +725,7 @@ function CreateUserModal({ onClose, onCreated }) {
                   className={`px-3 py-1 rounded-full text-sm border ${
                     form.roles.includes(name)
                       ? "bg-primary-600 text-white border-primary-600"
-                      : "bg-white text-gray-700 border-gray-300"
+                      : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600"
                   }`}
                 >
                   {name}

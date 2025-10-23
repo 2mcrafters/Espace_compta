@@ -24,7 +24,10 @@ function useTasks() {
     queryKey: ["tasks"],
     queryFn: async () => {
       const { data } = await api.get("/tasks");
-      return data;
+      // Backend returns a paginator object { data: [...], ... }
+      // Normalize to an array for the dashboard
+      if (Array.isArray(data)) return data;
+      return data?.data || [];
     },
   });
 }

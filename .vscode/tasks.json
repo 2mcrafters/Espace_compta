@@ -339,6 +339,45 @@
 			],
 			"isBackground": false,
 			"group": "build"
+		},
+		{
+			"label": "Check backend up endpoint",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Invoke-WebRequest -Uri http://127.0.0.1:8002/up -UseBasicParsing | Select-Object -ExpandProperty StatusCode"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Proxy CSRF health check",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Invoke-WebRequest -Uri http://localhost:5173/sanctum/csrf-cookie -UseBasicParsing -Headers @{'X-Requested-With'='XMLHttpRequest'} | Select-Object -ExpandProperty StatusCode"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "API unauthenticated /user check",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"try { $r = Invoke-WebRequest -Uri http://localhost:5173/api/user -UseBasicParsing -ErrorAction Stop; $r.StatusCode } catch { $_.Exception.Response.StatusCode.value__ }"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
 		}
 	]
 }

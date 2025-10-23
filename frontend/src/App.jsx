@@ -25,8 +25,8 @@ export default function App() {
     "px-4 py-2.5 rounded-xl transition-all duration-300 flex items-center gap-3 font-medium relative overflow-hidden group";
   const active = ({ isActive }) =>
     isActive
-      ? `${linkBase} bg-gradient-to-r from-primary-500 to-primary-700 text-white shadow-xl shadow-primary-500/40 hover:shadow-2xl hover:shadow-primary-500/50 hover:scale-[1.02] hover:-translate-y-0.5`
-      : `${linkBase} text-gray-600 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:text-primary-600 dark:hover:text-primary-400 hover:shadow-md hover:scale-[1.02] hover:-translate-y-0.5`;
+      ? `${linkBase} bg-gradient-to-r from-primary-500 to-primary-700 text-white shadow-xl shadow-primary-500/40 hover:scale-[1.02] hover:-translate-y-0.5`
+      : `${linkBase} text-gray-600 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:text-primary-600 dark:hover:text-primary-400 hover:scale-[1.02] hover:-translate-y-0.5`;
 
   const navItems = [
     {
@@ -221,7 +221,7 @@ export default function App() {
             <motion.div
               whileHover={{ rotate: [0, -10, 10, -10, 0], scale: 1.1 }}
               transition={{ duration: 0.6 }}
-              className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-lg hover:shadow-2xl hover:shadow-primary-500/50 transition-shadow duration-300"
+              className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 dark:from-primary-700 dark:to-primary-500 flex items-center justify-center shadow-lg transition-shadow duration-300"
             >
               <svg
                 className="w-6 h-6 text-white"
@@ -238,10 +238,10 @@ export default function App() {
               </svg>
             </motion.div>
             <div>
-              <div className="font-bold text-lg bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
+              <div className="font-bold text-lg bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent dark:text-white dark:bg-none">
                 Espace Compta
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
+              <div className="text-xs text-gray-500 dark:text-white/80">
                 Gestion simplifiée
               </div>
             </div>
@@ -388,7 +388,7 @@ export default function App() {
                   />
                 </svg>
               </button>
-              <div className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-200 lg:hidden">
+              <div className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-white lg:hidden">
                 Espace Compta
               </div>
             </div>

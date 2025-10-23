@@ -10,6 +10,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rules\Password as PasswordRule;
+use Illuminate\Support\Facades\Password;
 use Spatie\Permission\Models\Role;
 
 class UsersController extends Controller
@@ -29,7 +30,8 @@ class UsersController extends Controller
             'job_title' => ['nullable','string','max:255'],
             'monthly_hours_target' => ['nullable','numeric'],
             'yearly_hours_target' => ['nullable','numeric'],
-            'password' => ['required', PasswordRule::defaults()],
+            'password' => ['nullable', PasswordRule::defaults()],
+            'send_invite' => ['sometimes','boolean'],
             'roles' => ['array'],
             'roles.*' => ['string','exists:roles,name'],
             'hourly_rate_mad' => ['nullable','numeric','min:0'],
@@ -42,6 +44,14 @@ class UsersController extends Controller
             $data['name'] = $parts !== '' ? $parts : explode('@', $data['email'])[0];
         }
 
+        // If no password provided but invite flag is not set, require password
+        if (empty($data['password']) && empty($data['send_invite'])) {
+            return response()->json([
+                'message' => 'Password is required when not sending an invite',
+                'errors' => ['password' => ['Mot de passe requis']],
+            ], 422);
+        }
+
         $user = User::create([
             'name' => $data['name'],
             'first_name' => $data['first_name'] ?? null,
@@ -52,7 +62,7 @@ class UsersController extends Controller
             'job_title' => $data['job_title'] ?? null,
             'monthly_hours_target' => $data['monthly_hours_target'] ?? null,
             'yearly_hours_target' => $data['yearly_hours_target'] ?? null,
-            'password' => $data['password'],
+            'password' => $data['password'] ?? str()->random(32),
         ]);
 
         // Assign roles if provided
@@ -68,6 +78,12 @@ class UsersController extends Controller
                 ['user_id' => $user->id, 'effective_from' => $effectiveFrom],
                 ['hourly_rate_mad' => $data['hourly_rate_mad']]
             );
+        }
+
+        // Optionally send invite email with password reset link
+        if (!empty($data['send_invite'])) {
+            // This will call User::sendPasswordResetNotification($token)
+            Password::sendResetLink(['email' => $user->email]);
         }
 
         return response()->json($this->transform($user->fresh()), 201);

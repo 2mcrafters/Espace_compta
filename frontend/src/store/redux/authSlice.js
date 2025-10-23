@@ -6,25 +6,25 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 const FORCE_DIRECT = (import.meta.env.VITE_FORCE_DIRECT || 'false').toLowerCase() === 'true'
 
 export const fetchCsrf = createAsyncThunk('auth/csrf', async () => {
-  const doRequest = async (url) => axios.get(url, {
+  // Always prefer the proxy (same-origin) to ensure XSRF cookie is set on the frontend host.
+  // Only use a direct call when explicitly enabled via VITE_FORCE_DIRECT=true.
+  const url = FORCE_DIRECT
+    ? `${BACKEND_URL}/sanctum/csrf-cookie`
+    : "/sanctum/csrf-cookie";
+
+  await axios.get(url, {
     withCredentials: true,
-    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-  })
-  try {
-    // Prefer direct when asked
-    if (FORCE_DIRECT) {
-      await doRequest(`${BACKEND_URL}/sanctum/csrf-cookie`)
-      return
-    }
-    // Default to proxy first
-    await doRequest('/sanctum/csrf-cookie')
-  } catch {
-    // Fallback to the other path
-    try {
-      await doRequest(`${BACKEND_URL}/sanctum/csrf-cookie`)
-    } catch (e) {
-      throw e
-    }
+    headers: { "X-Requested-With": "XMLHttpRequest" },
+  });
+
+  // Sanity check: make sure the browser actually received the XSRF cookie
+  if (
+    typeof document !== "undefined" &&
+    !document.cookie.includes("XSRF-TOKEN=")
+  ) {
+    throw new Error(
+      "CSRF cookie not set. Ensure you are using the same hostname (localhost vs 127.0.0.1) and that the request goes through the Vite proxy."
+    );
   }
 })
 

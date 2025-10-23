@@ -54,6 +54,7 @@ Route::middleware(['web'])->group(function () {
         Route::post('tasks/{task}/assign', [TaskController::class, 'assign']);
 
         // Time entries: listing by task and start/stop
+    Route::get('time-entries', [TimeEntryController::class, 'index']);
         Route::get('tasks/{task}/time-entries', [TimeEntryController::class, 'indexForTask']);
         Route::post('tasks/{task}/time/start', [TimeEntryController::class, 'start']);
         Route::post('time-entries/{entry}/stop', [TimeEntryController::class, 'stop']);

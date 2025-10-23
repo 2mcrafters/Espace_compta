@@ -8,6 +8,20 @@ use Illuminate\Http\Request;
 
 class TimeEntryController extends Controller
 {
+    // GET /time-entries?per_page=5
+    public function index(Request $request)
+    {
+        $this->authorize('viewAny', TimeEntry::class);
+        $perPage = (int) $request->query('per_page', 5);
+        if ($perPage < 1) $perPage = 5;
+        if ($perPage > 100) $perPage = 100;
+
+        $entries = TimeEntry::with(['user:id,name,email','task:id,client_id'])
+            ->orderByDesc('start_at')
+            ->paginate($perPage);
+
+        return response()->json($entries);
+    }
     public function indexForTask(Task $task)
     {
         $this->authorize('view', $task);

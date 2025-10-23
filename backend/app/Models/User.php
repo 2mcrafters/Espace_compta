@@ -8,6 +8,10 @@ use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\WelcomeInviteMail;
 
 class User extends Authenticatable
 {
@@ -55,5 +59,17 @@ class User extends Authenticatable
             'monthly_hours_target' => 'decimal:2',
             'yearly_hours_target' => 'decimal:2',
         ];
+    }
+
+    /**
+     * Send the password reset notification.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $frontend = Config::get('app.frontend_url');
+        $resetUrl = $frontend
+            ? rtrim($frontend, '/') . '/reset-password?email=' . urlencode($this->email) . '&token=' . urlencode($token)
+            : URL::to('/password/reset').'?email='.urlencode($this->email).'&token='.urlencode($token);
+        Mail::to($this->email)->queue(new WelcomeInviteMail($this, $resetUrl));
     }
 }

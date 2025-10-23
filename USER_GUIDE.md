@@ -184,3 +184,31 @@
 ---
 
 **Enjoy your new dark mode and fully responsive app! 🎉**
+
+---
+
+## 👥 Collaborateurs — Création & Invitation
+
+Vous pouvez créer des utilisateurs depuis la page Collaborateurs. Le modal de création prend en charge:
+
+- Champs de base (prénom, nom, email, téléphone, etc.)
+- Objectifs d'heures mensuel/annuel
+- Taux horaire initial + date d'effet
+- Attribution des rôles
+- Envoi d'une invitation par email (optionnel)
+
+### Invitation par email
+
+Dans le modal, cochez « Envoyer un email d'invitation ». Le champ mot de passe devient facultatif et l'utilisateur recevra un email avec un lien pour définir son mot de passe.
+
+Pré-requis:
+
+- Configurer l'envoi d'emails dans `.env` (MAIL_MAILER, MAIL_HOST, ...)
+- Définir `FRONTEND_URL` (ex: http://localhost:5173) pour que le lien pointe vers le frontend
+- En dev, vous pouvez utiliser `QUEUE_CONNECTION=sync` pour envoyer immédiatement
+
+Comportement:
+
+- Le backend génère un token de réinitialisation et envoie un email « Bienvenue » avec un bouton « Définir mon mot de passe ».
+- Les toasts de succès / erreur s'affichent en bas à droite.
+- Les erreurs de validation s'affichent sous les champs concernés.

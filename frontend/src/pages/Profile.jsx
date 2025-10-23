@@ -48,42 +48,89 @@ export default function Profile(){
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
-        <h2 className="text-lg font-semibold mb-4">Profil</h2>
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-lg transition-colors">
+        <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
+          Profil
+        </h2>
         <form onSubmit={saveProfile} className="space-y-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Nom</label>
-            <input className="w-full border rounded-lg px-3 py-2" value={name} onChange={e=>setName(e.target.value)} />
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
+              Nom
+            </label>
+            <input
+              className="w-full border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Email</label>
-            <input className="w-full border rounded-lg px-3 py-2" value={email} onChange={e=>setEmail(e.target.value)} />
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
+              Email
+            </label>
+            <input
+              className="w-full border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
-          <Button type="submit" disabled={saving} className="!from-primary-600 !to-primary-700">
-            {saving ? 'Enregistrement...' : 'Enregistrer'}
+          <Button
+            type="submit"
+            disabled={saving}
+            className="!from-primary-600 !to-primary-700"
+          >
+            {saving ? "Enregistrement..." : "Enregistrer"}
           </Button>
-          {msg && <div className="text-sm text-gray-600">{msg}</div>}
+          {msg && (
+            <div className="text-sm text-gray-600 dark:text-gray-300">
+              {msg}
+            </div>
+          )}
         </form>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
-        <h2 className="text-lg font-semibold mb-4">Mot de passe</h2>
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-lg transition-colors">
+        <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
+          Mot de passe
+        </h2>
         <form onSubmit={changePassword} className="space-y-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Mot de passe actuel</label>
-            <input name="current_password" type="password" className="w-full border rounded-lg px-3 py-2" required />
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
+              Mot de passe actuel
+            </label>
+            <input
+              name="current_password"
+              type="password"
+              className="w-full border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+              required
+            />
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Nouveau mot de passe</label>
-            <input name="password" type="password" className="w-full border rounded-lg px-3 py-2" required />
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
+              Nouveau mot de passe
+            </label>
+            <input
+              name="password"
+              type="password"
+              className="w-full border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+              required
+            />
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Confirmer</label>
-            <input name="password_confirmation" type="password" className="w-full border rounded-lg px-3 py-2" required />
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
+              Confirmer
+            </label>
+            <input
+              name="password_confirmation"
+              type="password"
+              className="w-full border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+              required
+            />
           </div>
-          <Button type="submit" className="!from-emerald-500 !to-green-600">Changer</Button>
+          <Button type="submit" className="!from-emerald-500 !to-green-600">
+            Changer
+          </Button>
         </form>
       </div>
     </div>
-  )
+  );
 }

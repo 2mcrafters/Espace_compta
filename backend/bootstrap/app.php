@@ -14,6 +14,17 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Enable CORS globally so frontend at localhost:5173 can access API
         $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
+
+        // Avoid redirecting unauthenticated API requests to a non-existent 'login' route.
+        // When null is returned here, Laravel will respond with 401 for guests instead of redirecting.
+        $middleware->redirectGuestsTo(function ($request) {
+            // For API routes and AJAX requests, prefer a JSON 401 response
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return null;
+            }
+            // If you later add a web login page, return its URL here.
+            return null;
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

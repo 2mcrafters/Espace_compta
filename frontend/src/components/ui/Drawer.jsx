@@ -25,15 +25,17 @@ export default function Drawer({ open, side='right', title, onClose, children, f
             animate="visible"
             exit="exit"
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className={`absolute top-0 ${sideClasses} h-full w-full max-w-md bg-white shadow-2xl flex flex-col`}
+            className={`absolute top-0 ${sideClasses} h-full w-full max-w-md bg-white dark:bg-gray-900 dark:text-gray-100 shadow-2xl flex flex-col`}
           >
-            <div className="border-b bg-gradient-to-r from-sky-50 to-blue-50 px-4 sm:px-6 py-4 flex items-center justify-between">
-              <div className="font-semibold text-gray-900">{title}</div>
+            <div className="border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 px-4 sm:px-6 py-4 flex items-center justify-between">
+              <div className="font-semibold text-gray-900 dark:text-gray-100">
+                {title}
+              </div>
               <motion.button
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={onClose}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100 transition-colors"
               >
                 <svg
                   className="w-5 h-5"
@@ -52,7 +54,7 @@ export default function Drawer({ open, side='right', title, onClose, children, f
             </div>
             <div className="flex-1 overflow-auto p-4 sm:p-6">{children}</div>
             {footer && (
-              <div className="border-t bg-gray-50 px-4 sm:px-6 py-4">
+              <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 py-4">
                 {footer}
               </div>
             )}

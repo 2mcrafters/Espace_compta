@@ -5,6 +5,8 @@ import api from '../lib/api'
 import Button from '../components/ui/Button'
 import Modal from "../components/ui/Modal";
 import Select from "../components/ui/Select";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
+import Badge from "../components/ui/Badge";
 import RequirePermission from "../components/RequirePermission";
 
 const STATUS = [
@@ -14,6 +16,8 @@ const STATUS = [
     color: "from-gray-400 to-gray-500",
     bgColor: "bg-gray-50",
     borderColor: "border-gray-200",
+    dotColor: "bg-slate-400",
+    headerGradient: "from-slate-300 to-slate-500",
   },
   {
     key: "EN_COURS",
@@ -21,6 +25,8 @@ const STATUS = [
     color: "from-primary-400 to-primary-700",
     bgColor: "bg-primary-50",
     borderColor: "border-primary-200",
+    dotColor: "bg-blue-500",
+    headerGradient: "from-blue-400 to-blue-600",
   },
   {
     key: "EN_VALIDATION",
@@ -28,6 +34,8 @@ const STATUS = [
     color: "from-amber-400 to-orange-500",
     bgColor: "bg-amber-50",
     borderColor: "border-amber-200",
+    dotColor: "bg-amber-500",
+    headerGradient: "from-amber-400 to-orange-500",
   },
   {
     key: "TERMINEE",
@@ -35,6 +43,8 @@ const STATUS = [
     color: "from-emerald-400 to-green-600",
     bgColor: "bg-emerald-50",
     borderColor: "border-emerald-200",
+    dotColor: "bg-emerald-500",
+    headerGradient: "from-emerald-400 to-green-600",
   },
 ];
 
@@ -69,6 +79,12 @@ export default function Tasks() {
   const { data: users = [], isLoading: loadingUsers } = useUsersLookup();
   const [runningByTask, setRunningByTask] = React.useState({});
   const [creating, setCreating] = React.useState(false);
+  const [newDefaults, setNewDefaults] = React.useState(null);
+  const [editingTask, setEditingTask] = React.useState(null);
+  const [confirmDelete, setConfirmDelete] = React.useState({
+    open: false,
+    taskId: null,
+  });
   const [filters, setFilters] = React.useState({
     category: "",
     nature: "",
@@ -154,6 +170,17 @@ export default function Tasks() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (taskId) => {
+      const { data } = await api.delete(`/tasks/${taskId}`);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tasks"] });
+      setConfirmDelete({ open: false, taskId: null });
+    },
+  });
+
   const grouped = React.useMemo(() => {
     const filtered = tasks.filter((t) => {
       if (filters.category && t.category !== filters.category) return false;
@@ -177,10 +204,12 @@ export default function Tasks() {
         className="flex flex-col md:flex-row md:items-end md:justify-between gap-4"
       >
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent mb-2">
             Tâches
           </h1>
-          <p className="text-gray-600">Suivez et gérez vos tâches par statut</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            Suivez et gérez vos tâches par statut
+          </p>
         </div>
         <RequirePermission perm="tasks.manage" fallback={null}>
           <Button onClick={() => setCreating(true)}>
@@ -255,14 +284,51 @@ export default function Tasks() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: colIndex * 0.1 }}
-            className={`rounded-2xl border-2 ${statusObj.borderColor} ${statusObj.bgColor} overflow-hidden shadow-lg`}
+            className={
+              "relative rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/40 backdrop-blur-sm overflow-hidden shadow-sm"
+            }
           >
-            <div className={`bg-gradient-to-r ${statusObj.color} px-4 py-3`}>
-              <h3 className="font-bold text-white text-sm uppercase tracking-wide">
-                {statusObj.label}
-              </h3>
-              <div className="text-xs text-white/80 mt-0.5">
-                {(grouped[statusObj.key] ?? []).length} tâche(s)
+            {/* subtle per-status accent line */}
+            <div
+              className={`h-0.5 w-full bg-gradient-to-r ${statusObj.headerGradient}`}
+            />
+            <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="flex items-center gap-2 font-bold text-gray-800 dark:text-gray-100 text-sm uppercase tracking-wide">
+                    <span
+                      className={`inline-block w-2 h-2 rounded-full ${statusObj.dotColor}`}
+                    ></span>
+                    {statusObj.label}
+                  </h3>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {(grouped[statusObj.key] ?? []).length} tâche(s)
+                  </div>
+                </div>
+                <RequirePermission perm="tasks.manage" fallback={null}>
+                  <button
+                    className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    title="Ajouter une tâche"
+                    onClick={() => {
+                      setNewDefaults({ status: statusObj.key });
+                      setCreating(true);
+                    }}
+                  >
+                    <svg
+                      className="w-4 h-4 text-gray-700 dark:text-gray-200"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                  </button>
+                </RequirePermission>
               </div>
             </div>
             <div className="p-4 space-y-3 min-h-[200px]">
@@ -270,11 +336,11 @@ export default function Tasks() {
                 Array.from({ length: 2 }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-32 bg-white/50 rounded-xl animate-pulse"
+                    className="h-32 bg-gray-100 dark:bg-gray-800/50 rounded-xl animate-pulse"
                   />
                 ))
               ) : (grouped[statusObj.key] ?? []).length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8 text-gray-400 dark:text-gray-500">
                   <svg
                     className="w-12 h-12 mx-auto mb-2 opacity-50"
                     fill="none"
@@ -309,6 +375,10 @@ export default function Tasks() {
                       }
                       onAssign={(userId) =>
                         assignMutation.mutate({ taskId: task.id, userId })
+                      }
+                      onEdit={() => setEditingTask(task)}
+                      onRequestDelete={() =>
+                        setConfirmDelete({ open: true, taskId: task.id })
                       }
                       users={users}
                       loadingUsers={loadingUsers}
@@ -368,13 +438,47 @@ export default function Tasks() {
       {/* Create Task Modal */}
       {creating && (
         <CreateTaskModal
-          onClose={() => setCreating(false)}
+          onClose={() => {
+            setCreating(false);
+            setNewDefaults(null);
+          }}
           onSave={(payload) => createMutation.mutate(payload)}
           saving={createMutation.isPending}
           clients={clients}
           users={users}
+          initial={newDefaults || undefined}
         />
       )}
+
+      {/* Edit Task Modal */}
+      {editingTask && (
+        <CreateTaskModal
+          onClose={() => setEditingTask(null)}
+          onSave={(payload) =>
+            quickUpdateMutation.mutate(
+              { taskId: editingTask.id, patch: payload },
+              { onSuccess: () => setEditingTask(null) }
+            )
+          }
+          saving={quickUpdateMutation.isPending}
+          clients={clients}
+          users={users}
+          initial={editingTask}
+        />
+      )}
+
+      {/* Delete confirmation */}
+      <ConfirmDialog
+        open={confirmDelete.open}
+        title="Supprimer la tâche"
+        description="Cette action est irréversible. Voulez-vous vraiment supprimer cette tâche ?"
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        onCancel={() => setConfirmDelete({ open: false, taskId: null })}
+        onConfirm={() =>
+          confirmDelete.taskId && deleteMutation.mutate(confirmDelete.taskId)
+        }
+      />
     </div>
   );
 }
@@ -386,6 +490,8 @@ function TaskCard({
   onStart,
   onStop,
   onAssign,
+  onEdit,
+  onRequestDelete,
   users = [],
   loadingUsers = false,
 }) {
@@ -402,87 +508,89 @@ function TaskCard({
     return opts;
   }, [users]);
 
+  function formatDate(value) {
+    if (!value) return null;
+    try {
+      const d = new Date(value);
+      if (isNaN(d.getTime())) return null;
+      return new Intl.DateTimeFormat("fr-FR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }).format(d);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function statusBadgeColor(key) {
+    switch (key) {
+      case "EN_COURS":
+        return "blue";
+      case "EN_VALIDATION":
+        return "amber";
+      case "TERMINEE":
+        return "emerald";
+      default:
+        return "gray";
+    }
+  }
+
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.9, y: -20 }}
-      transition={{
-        delay: index * 0.05,
-        type: "spring",
-        stiffness: 300,
-        damping: 25,
-      }}
-      whileHover={{
-        y: -5,
-        scale: 1.03,
-        boxShadow: "0 20px 40px rgba(0, 0, 0, 0.12)",
-        borderColor: "rgba(59, 130, 246, 0.3)",
-      }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ delay: index * 0.05 }}
+      className="relative rounded-xl border border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-800/80 backdrop-blur p-4 shadow-sm hover:shadow-md transition-shadow"
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      className="relative rounded-xl border-2 border-gray-200 bg-white p-4 shadow-md transition-all duration-300 overflow-hidden group"
     >
-      {/* Hover gradient overlay */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isHovered ? 0.03 : 0 }}
-        transition={{ duration: 0.3 }}
-        className="absolute inset-0 bg-gradient-to-br from-primary-500 to-primary-700 pointer-events-none"
-      />
-
-      {/* Shimmer effect */}
-      <motion.div
-        initial={{ x: "-100%", opacity: 0 }}
-        animate={
-          isHovered
-            ? { x: "200%", opacity: [0, 0.3, 0] }
-            : { x: "-100%", opacity: 0 }
-        }
-        transition={{ duration: 0.8, ease: "easeInOut" }}
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-12 pointer-events-none"
-      />
-      {/* Progress bar */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gray-100 rounded-t-xl overflow-hidden">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${task.progress ?? 0}%` }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          className="h-full bg-gradient-to-r from-primary-500 to-primary-700"
-        />
-      </div>
-
-      <div className="flex items-start justify-between gap-3 mt-2">
-        <div className="flex-1">
-          <div className="font-semibold text-gray-900">
+      {/* blue accent bar */}
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 rounded-t-xl" />
+      {/* Header */}
+      <div className="flex items-start gap-3">
+        {/* Progress ring */}
+        <div className="relative w-12 h-12">
+          <svg className="w-12 h-12 rotate-[-90deg]" viewBox="0 0 36 36">
+            <circle
+              cx="18"
+              cy="18"
+              r="16"
+              className="fill-none stroke-gray-200 dark:stroke-gray-700"
+              strokeWidth="4"
+            />
+            <circle
+              cx="18"
+              cy="18"
+              r="16"
+              className="fill-none stroke-gray-500 dark:stroke-gray-400"
+              strokeWidth="4"
+              strokeDasharray={`${(task.progress ?? 0) * 1.005}, 100`}
+              strokeLinecap="round"
+            />
+          </svg>
+          <div className="absolute inset-0 grid place-items-center text-xs font-bold text-gray-700 dark:text-gray-200">
+            {task.progress ?? 0}%
+          </div>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-gray-900 dark:text-gray-100 truncate">
             {task.title ?? task.name ?? `Tâche #${task.id}`}
           </div>
-          <div className="flex items-center gap-2 mt-2 text-xs">
-            <motion.span
-              whileHover={{ scale: 1.05, y: -1 }}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gradient-to-r from-indigo-100 to-blue-100 text-indigo-700 font-medium border border-indigo-200 shadow-sm relative z-10"
-            >
-              <motion.svg
-                animate={{ rotate: isHovered ? [0, 5, -5, 0] : 0 }}
-                transition={{ duration: 0.5 }}
-                className="w-3 h-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-                />
-              </motion.svg>
-              {task.category || "Général"}
-            </motion.span>
-            <motion.span
-              whileHover={{ scale: 1.05, y: -1 }}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 font-medium border border-purple-200 shadow-sm relative z-10"
-            >
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+            {/* status badge */}
+            <Badge color={statusBadgeColor(task.status)} className="gap-2">
+              <span
+                className={`inline-block w-1.5 h-1.5 rounded-full ${
+                  STATUS.find((s) => s.key === task.status)?.dotColor ||
+                  "bg-blue-500"
+                }`}
+              />
+              {STATUS.find((s) => s.key === task.status)?.label || "Statut"}
+            </Badge>
+            {/* category badge */}
+            <Badge color="primary" className="gap-2">
               <svg
                 className="w-3 h-3"
                 fill="none"
@@ -492,47 +600,100 @@ function TaskCard({
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  strokeWidth="2"
+                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
                 />
               </svg>
-              {task.due_at ?? "—"}
-            </motion.span>
-          </div>
-        </div>
-        <motion.div
-          animate={{
-            scale: isHovered ? 1.15 : 1,
-            rotate: isHovered ? [0, -3, 3, 0] : 0,
-          }}
-          transition={{ duration: 0.4 }}
-          className="text-sm font-bold text-primary-700 px-3 py-1.5 rounded-lg bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-200 shadow-sm relative z-10"
-        >
-          {task.progress ?? 0}%
-        </motion.div>
-      </div>
-
-      <div className="mt-4 flex flex-col gap-2">
-        {/* Assignees list */}
-        {Array.isArray(task.assignees) && task.assignees.length > 0 && (
-          <div className="flex -space-x-2 mb-2">
-            {task.assignees.slice(0, 5).map((u, idx) => (
-              <div
-                key={u.id || idx}
-                title={`${u.name || u.email}`}
-                className="inline-flex items-center justify-center w-7 h-7 rounded-full ring-2 ring-white bg-primary-600 text-white text-[10px] font-bold"
-              >
-                {initials(u.name || u.email)}
-              </div>
-            ))}
-            {task.assignees.length > 5 && (
-              <div className="inline-flex items-center justify-center w-7 h-7 rounded-full ring-2 ring-white bg-gray-200 text-gray-700 text-[10px] font-bold">
-                +{task.assignees.length - 5}
-              </div>
+              {(task.category || "Général").toUpperCase()}
+            </Badge>
+            {/* due date badge */}
+            {formatDate(task.due_at) && (
+              <Badge color="gray" className="gap-2">
+                <svg
+                  className="w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                {formatDate(task.due_at)}
+              </Badge>
             )}
           </div>
-        )}
+        </div>
+        <RequirePermission perm="tasks.manage" fallback={null}>
+          <div className="ml-auto flex items-center gap-1">
+            <button
+              title="Modifier"
+              onClick={onEdit}
+              className="inline-flex items-center justify-center w-8 h-8 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
+            >
+              <svg
+                className="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M11 5h2m6 14H5a2 2 0 01-2-2V7a2 2 0 012-2h7l2 2h7a2 2 0 012 2v8a2 2 0 01-2 2z"
+                />
+              </svg>
+            </button>
+            <button
+              title="Supprimer"
+              onClick={onRequestDelete}
+              className="inline-flex items-center justify-center w-8 h-8 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-rose-600 dark:text-rose-400"
+            >
+              <svg
+                className="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-1-3H10a1 1 0 00-1 1v1h8V5a1 1 0 00-1-1z"
+                />
+              </svg>
+            </button>
+          </div>
+        </RequirePermission>
+      </div>
 
+      {/* Assignees */}
+      {Array.isArray(task.assignees) && task.assignees.length > 0 && (
+        <div className="flex -space-x-2 mt-3">
+          {task.assignees.slice(0, 5).map((u, idx) => (
+            <div
+              key={u.id || idx}
+              title={`${u.name || u.email}`}
+              className="inline-flex items-center justify-center w-7 h-7 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-[10px] font-bold"
+            >
+              {initials(u.name || u.email)}
+            </div>
+          ))}
+          {task.assignees.length > 5 && (
+            <div className="inline-flex items-center justify-center w-7 h-7 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-[10px] font-bold">
+              +{task.assignees.length - 5}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Controls */}
+      <div className="mt-4 flex flex-col gap-3">
+        {/* Assignees list */}
         <RequirePermission
           perm="tasks.manage"
           fallback={
@@ -549,76 +710,23 @@ function TaskCard({
         >
           {!runningEntryId ? (
             <motion.button
-              whileHover={{
-                scale: 1.03,
-                y: -2,
-                boxShadow: "0 15px 30px rgba(16, 185, 129, 0.4)",
-              }}
-              whileTap={{ scale: 0.97 }}
               onClick={onStart}
-              className="w-full px-3 py-2.5 rounded-lg bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-semibold shadow-lg transition-all duration-300 flex items-center justify-center gap-2 relative overflow-hidden group"
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              className="w-full px-3 py-2.5 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-semibold shadow-sm transition-colors flex items-center justify-center gap-2"
             >
-              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 transform -translate-x-full group-hover:translate-x-full transition-all duration-700"></span>
-              <svg
-                className="w-5 h-5 relative z-10"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span className="relative z-10">Démarrer</span>
+              <span className="inline-block w-2 h-2 rounded-full bg-white/80"></span>
+              <span>Démarrer</span>
             </motion.button>
           ) : (
             <motion.button
-              animate={{
-                boxShadow: [
-                  "0 0 0 0 rgba(244, 63, 94, 0.4)",
-                  "0 0 0 8px rgba(244, 63, 94, 0)",
-                ],
-              }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              whileHover={{
-                scale: 1.03,
-                y: -2,
-                boxShadow: "0 15px 30px rgba(239, 68, 68, 0.5)",
-              }}
-              whileTap={{ scale: 0.97 }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
               onClick={onStop}
-              className="w-full px-3 py-2.5 rounded-lg bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-semibold shadow-lg transition-all duration-300 flex items-center justify-center gap-2 relative overflow-hidden group"
+              className="w-full px-3 py-2.5 rounded-lg bg-gray-900 hover:bg-black text-white font-semibold shadow-sm transition-colors flex items-center justify-center gap-2"
             >
-              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 transform -translate-x-full group-hover:translate-x-full transition-all duration-700"></span>
-              <svg
-                className="w-5 h-5 relative z-10"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
-                />
-              </svg>
-              <span className="relative z-10">Arrêter</span>
+              <span className="inline-block w-2 h-2 rounded-full bg-rose-500"></span>
+              <span>Arrêter</span>
             </motion.button>
           )}
         </RequirePermission>
@@ -640,18 +748,13 @@ function TaskCard({
               disabled={loadingUsers}
             />
             <motion.button
-              whileHover={{
-                scale: 1.05,
-                y: -2,
-                boxShadow: "0 10px 20px rgba(75, 85, 99, 0.4)",
-              }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
               onClick={() => assignee && onAssign(assignee)}
               disabled={!assignee}
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white text-sm font-semibold shadow-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 relative overflow-hidden group"
+              className="px-4 py-2 rounded-lg bg-gray-900 hover:bg-black text-white text-sm font-semibold shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transform -translate-x-full group-hover:translate-x-full transition-all duration-500"></span>
-              <span className="relative z-10">OK</span>
+              OK
             </motion.button>
           </div>
         </RequirePermission>
@@ -681,7 +784,7 @@ function TaskCard({
                   patch: { progress: Number(e.target.value) },
                 })
               }
-              className="flex-1"
+              className="flex-1 accent-gray-500"
             />
           </div>
         </RequirePermission>
@@ -699,19 +802,19 @@ function initials(name) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-function CreateTaskModal({ onClose, onSave, saving, clients, users }) {
-  const [form, setForm] = React.useState({
-    client_id: clients[0]?.id || "",
-    owner_id: "",
-    category: "COMPTABLE",
-    nature: "CONTINUE",
-    status: "EN_ATTENTE",
-    priority: 0,
-    progress: 0,
-    starts_at: "",
-    due_at: "",
-    notes: "",
-  });
+function CreateTaskModal({ onClose, onSave, saving, clients, users, initial }) {
+  const [form, setForm] = React.useState(() => ({
+    client_id: initial?.client_id ?? clients[0]?.id ?? "",
+    owner_id: initial?.owner_id ? String(initial.owner_id) : "",
+    category: initial?.category ?? "COMPTABLE",
+    nature: initial?.nature ?? "CONTINUE",
+    status: initial?.status ?? "EN_ATTENTE",
+    priority: initial?.priority ?? 0,
+    progress: initial?.progress ?? 0,
+    starts_at: initial?.starts_at ?? "",
+    due_at: initial?.due_at ?? "",
+    notes: initial?.notes ?? "",
+  }));
 
   function update(field, value) {
     setForm((s) => ({ ...s, [field]: value }));
@@ -732,7 +835,7 @@ function CreateTaskModal({ onClose, onSave, saving, clients, users }) {
     <Modal
       open
       onClose={onClose}
-      title="Créer une nouvelle tâche"
+      title={initial?.id ? "Modifier la tâche" : "Créer une nouvelle tâche"}
       footer={
         <div className="flex gap-2 justify-end">
           <Button
@@ -742,7 +845,11 @@ function CreateTaskModal({ onClose, onSave, saving, clients, users }) {
             Annuler
           </Button>
           <Button onClick={submit} disabled={saving || !form.client_id}>
-            {saving ? "Enregistrement..." : "Créer"}
+            {saving
+              ? "Enregistrement..."
+              : initial?.id
+              ? "Enregistrer"
+              : "Créer"}
           </Button>
         </div>
       }
